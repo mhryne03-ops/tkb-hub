@@ -19,61 +19,6 @@
 </head>
 <body class="text-slate-800 min-h-screen flex flex-col">
 
-  <!-- MÀN HÌNH ĐĂNG NHẬP / ĐĂNG KÝ (AUTH OVERLAY) -->
-  <div id="authScreen" class="fixed inset-0 bg-slate-900/75 backdrop-blur-sm flex items-center justify-center z-50 p-4 hidden">
-    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-slate-200 overflow-hidden">
-      <div class="bg-red-900 text-white px-6 py-5">
-        <div class="flex items-center gap-2">
-          <span class="bg-amber-400 text-red-950 text-xs font-bold px-2 py-0.5 rounded">HUB • HK2 2026–2027</span>
-        </div>
-        <h2 class="text-xl font-bold mt-2">Cổng Lập Thời Khóa Biểu Sinh Viên</h2>
-        <p class="text-xs text-red-200 mt-1">Đăng nhập để lưu trữ và quản lý các phương án TKB của riêng bạn.</p>
-      </div>
-
-      <!-- Chuyển tab Đăng nhập / Đăng ký -->
-      <div class="flex border-b border-slate-200 bg-slate-50">
-        <button id="authTabLogin" onclick="switchAuthMode('login')" class="flex-1 py-3 text-sm font-bold text-red-900 border-b-2 border-red-900 bg-white">Đăng nhập</button>
-        <button id="authTabRegister" onclick="switchAuthMode('register')" class="flex-1 py-3 text-sm font-medium text-slate-500 hover:text-slate-800">Đăng ký tài khoản</button>
-      </div>
-
-      <!-- Form Đăng Nhập -->
-      <form id="loginForm" onsubmit="handleLogin(event)" class="p-6 space-y-4">
-        <div id="loginError" class="hidden bg-red-50 border border-red-200 text-red-700 text-xs px-3 py-2 rounded-lg"></div>
-        <div>
-          <label class="block text-xs font-semibold text-slate-600 mb-1">Tên đăng nhập / MSSV</label>
-          <input type="text" id="loginUsername" required placeholder="VD: 030638250001 hoặc maihoai" class="w-full border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-800" />
-        </div>
-        <div>
-          <label class="block text-xs font-semibold text-slate-600 mb-1">Mật khẩu</label>
-          <input type="password" id="loginPassword" required placeholder="Nhập mật khẩu..." class="w-full border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-800" />
-        </div>
-        <button type="submit" class="w-full bg-red-900 hover:bg-red-800 text-white font-semibold py-2.5 rounded-xl text-sm shadow transition">Đăng nhập vào TKB</button>
-
-        <div class="pt-2 border-t border-slate-100 text-center">
-          <button type="button" onclick="loginAsGuest()" class="text-xs text-slate-500 hover:text-red-900 font-medium underline">Tiếp tục với tư cách Khách (Không cần mật khẩu)</button>
-        </div>
-      </form>
-
-      <!-- Form Đăng Ký -->
-      <form id="registerForm" onsubmit="handleRegister(event)" class="p-6 space-y-4 hidden">
-        <div id="registerError" class="hidden bg-red-50 border border-red-200 text-red-700 text-xs px-3 py-2 rounded-lg"></div>
-        <div>
-          <label class="block text-xs font-semibold text-slate-600 mb-1">Họ và tên hiển thị</label>
-          <input type="text" id="regFullname" required placeholder="VD: Nguyễn Thị Mai Hoài" class="w-full border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-800" />
-        </div>
-        <div>
-          <label class="block text-xs font-semibold text-slate-600 mb-1">Tên đăng nhập / MSSV</label>
-          <input type="text" id="regUsername" required placeholder="Viết liền không dấu (VD: maihoai)" class="w-full border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-800" />
-        </div>
-        <div>
-          <label class="block text-xs font-semibold text-slate-600 mb-1">Mật khẩu (tối thiểu 4 ký tự)</label>
-          <input type="password" id="regPassword" required minlength="4" placeholder="Tạo mật khẩu..." class="w-full border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-800" />
-        </div>
-        <button type="submit" class="w-full bg-amber-400 hover:bg-amber-300 text-red-950 font-bold py-2.5 rounded-xl text-sm shadow transition">Tạo tài khoản & Bắt đầu</button>
-      </form>
-    </div>
-  </div>
-
   <!-- Header -->
   <header class="bg-red-900 text-white shadow-md">
     <div class="max-w-7xl mx-auto px-4 py-4 flex flex-wrap items-center justify-between gap-4">
@@ -86,11 +31,1229 @@
       </div>
 
       <div class="flex flex-wrap items-center gap-2">
-        <!-- Badge Thông Tin Tài Khoản Đang Đăng Nhập -->
-        <div class="bg-red-950/60 border border-red-700 px-3 py-1.5 rounded-lg flex items-center gap-2.5 mr-1">
-          <div class="w-6 h-6 rounded-full bg-amber-400 text-red-950 font-bold text-xs flex items-center justify-center" id="userAvatarLetter">U</div>
-          <div class="text-left leading-tight">
-            <div id="userDisplayName" class="text-xs font-semibold text-white">Sinh viên</div>
-            <div id="userDisplayId" class="text-[10px] text-red-300">@user</div>
+        <!-- Khu vực Tài khoản -->
+        <div id="authHeaderArea" class="flex items-center gap-2 mr-1"></div>
+
+        <!-- Nạp dữ liệu học phần (Excel hoặc JSON) -->
+        <label class="cursor-pointer bg-emerald-700 hover:bg-emerald-600 border border-emerald-500 text-xs font-semibold px-3 py-2 rounded-lg flex items-center gap-1.5 transition shadow-xs" title="Tải lên file Excel kế hoạch của trường (.xlsx, .xls) hoặc file JSON dữ liệu môn học">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          <span>Nạp dữ liệu (Excel/JSON)</span>
+          <input type="file" id="courseDbUpload" accept=".xlsx,.xls,.json" class="hidden" />
+        </label>
+
+        <button onclick="exportCourseDbJson()" class="bg-red-800 hover:bg-red-700 border border-red-600 text-xs font-medium px-3 py-2 rounded-lg flex items-center gap-1.5 transition" title="Xuất danh sách lớp học phần đã nạp thành file JSON gọn nhẹ để chia sẻ">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+          <span>Xuất DB JSON</span>
+        </button>
+
+        <!-- Sao lưu kế hoạch cá nhân -->
+        <button onclick="exportBackup()" class="bg-red-800 hover:bg-red-700 border border-red-600 text-xs font-medium px-3 py-2 rounded-lg flex items-center gap-1.5 transition" title="Tải file sao lưu các phương án A, B, C...">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
+          <span>Lưu kế hoạch</span>
+        </button>
+        <label class="cursor-pointer bg-red-800 hover:bg-red-700 border border-red-600 text-xs font-medium px-3 py-2 rounded-lg flex items-center gap-1.5 transition" title="Khôi phục các phương án TKB từ file sao lưu JSON">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+          <span>Mở kế hoạch</span>
+          <input type="file" id="jsonImport" accept=".json" class="hidden" />
+        </label>
+
+        <button onclick="openAddModal()" class="bg-amber-400 hover:bg-amber-300 text-red-950 font-semibold text-sm px-4 py-2 rounded-lg shadow flex items-center gap-1.5 transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+          <span>Thêm môn học</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="max-w-7xl w-full mx-auto px-4 py-5 flex-1 space-y-5">
+
+    <!-- BANNER NHẮC NẠP DỮ LIỆU KHI CHƯA CÓ FILE EXCEL/JSON -->
+    <div id="emptyDbBanner" class="hidden bg-amber-50 border-2 border-dashed border-amber-400 rounded-2xl p-6 text-center space-y-3 shadow-xs">
+      <div class="w-12 h-12 rounded-full bg-amber-100 text-amber-800 flex items-center justify-center mx-auto">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+      </div>
+      <div>
+        <h2 class="text-base font-bold text-slate-800">Chưa có dữ liệu lớp học phần trên trình duyệt</h2>
+        <p class="text-xs text-slate-600 mt-1 max-w-xl mx-auto">
+          Vui lòng chọn tệp <strong>Excel Kế hoạch học tập (.xlsx, .xls)</strong> của trường hoặc tệp <strong>dữ liệu (.json)</strong> để nạp danh sách lớp học phần. Dữ liệu sẽ tự động lưu lại cho các lần truy cập sau.
+        </p>
+      </div>
+      <div>
+        <label class="inline-flex items-center gap-2 cursor-pointer bg-red-900 hover:bg-red-800 text-white text-sm font-semibold px-5 py-2.5 rounded-xl shadow transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+          <span>Chọn file Excel (.xlsx) hoặc JSON (.json)</span>
+          <input type="file" id="courseDbUploadBanner" accept=".xlsx,.xls,.json" class="hidden" />
+        </label>
+      </div>
+    </div>
+
+    <!-- MULTI-PLAN SWITCHER BAR (Kế hoạch A, B, C, D...) -->
+    <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm space-y-3">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center gap-2">
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Phương án TKB:</span>
+          <span id="saveIndicator" class="text-[11px] bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full font-medium">✓ Đã lưu tự động</span>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-1.5">
+          <button onclick="createNewPlan()" class="text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-white px-3 py-1.5 rounded-lg transition flex items-center gap-1">
+            <span>+ Thêm kế hoạch mới</span>
+          </button>
+          <button onclick="duplicateCurrentPlan()" class="text-xs font-medium bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 px-2.5 py-1.5 rounded-lg transition" title="Tạo bản sao từ phương án hiện tại để chỉnh sửa thử">
+            Nhân bản phương án này
+          </button>
+          <button onclick="renameCurrentPlan()" class="text-xs font-medium bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 px-2.5 py-1.5 rounded-lg transition">
+            Đổi tên
+          </button>
+          <button onclick="deleteCurrentPlan()" class="text-xs font-medium bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 px-2.5 py-1.5 rounded-lg transition">
+            Xóa kế hoạch
+          </button>
+        </div>
+      </div>
+
+      <!-- Plan Pills Container -->
+      <div id="planTabsContainer" class="flex flex-wrap items-center gap-2 pt-1"></div>
+    </div>
+
+    <!-- Status & View Tabs Bar -->
+    <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div id="dbStatusDot" class="w-2.5 h-2.5 rounded-full bg-amber-500 shrink-0"></div>
+        <div>
+          <p id="dbStatusText" class="text-sm font-medium text-slate-700">Chưa nạp dữ liệu lớp học phần (Vui lòng tải file Excel hoặc JSON)</p>
+          <p class="text-xs text-slate-500">
+            Tài khoản: <strong id="currentAccountBadge" class="text-slate-800">Khách (Chưa đăng nhập)</strong> • 
+            Đang xem: <strong id="currentPlanTitle" class="text-red-900">Kế hoạch A</strong>
+          </p>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <div class="flex items-center gap-6 border-b border-slate-200">
+        <button id="tabBtnTimetable" onclick="switchTab('timetable')" class="pb-2 text-sm tab-active">Thời khóa biểu tuần</button>
+        <button id="tabBtnExams" onclick="switchTab('exams')" class="pb-2 text-sm text-slate-500 hover:text-slate-800">Lịch thi dự kiến (<span id="examCount">0</span>)</button>
+        <button id="tabBtnCourses" onclick="switchTab('courses')" class="pb-2 text-sm text-slate-500 hover:text-slate-800">Môn đã chọn (<span id="courseCount">0</span>)</button>
+      </div>
+    </div>
+
+    <!-- Conflict Alert Banner -->
+    <div id="conflictBanner" class="hidden bg-red-50 border border-red-300 text-red-800 rounded-xl p-4 text-sm">
+      <div class="font-bold flex items-center gap-2 mb-1">
+        <span>⚠️ Cảnh báo trùng lịch trong <span id="conflictPlanName"></span>:</span>
+      </div>
+      <ul id="conflictList" class="list-disc list-inside space-y-1 text-xs"></ul>
+    </div>
+
+    <!-- TAB 1: TIMETABLE -->
+    <section id="viewTimetable" class="space-y-4">
+      <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm flex flex-wrap items-center justify-between gap-4">
+        <div class="flex items-center gap-2">
+          <button onclick="changeWeek(-1)" class="p-2 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-600" title="Tuần trước">◀</button>
+          <select id="weekSelector" onchange="renderAll()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm font-semibold text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-red-800"></select>
+          <button onclick="changeWeek(1)" class="p-2 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-600" title="Tuần sau">▶</button>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-3 text-xs text-slate-600">
+          <span class="px-2.5 py-1 rounded bg-slate-100"><strong>Ca S:</strong> 7h00 – 11h05 (Tiết 1–5)</span>
+          <span class="px-2.5 py-1 rounded bg-slate-100"><strong>Ca C:</strong> 13h00 – 17h05 (Tiết 6–10)</span>
+          <button onclick="clearCurrentPlanCourses()" class="text-red-600 hover:underline font-medium ml-2">Làm trống kế hoạch này</button>
+        </div>
+      </div>
+
+      <!-- Weekly Grid -->
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-x-auto">
+        <table class="w-full min-w-[900px] border-collapse text-sm">
+          <thead>
+            <tr class="bg-slate-100 text-slate-700 border-b border-slate-200">
+              <th class="w-28 p-3 text-left font-semibold border-r border-slate-200">Buổi / Ca</th>
+              <th id="th-2" class="p-3 text-center font-semibold border-r border-slate-200">Thứ 2</th>
+              <th id="th-3" class="p-3 text-center font-semibold border-r border-slate-200">Thứ 3</th>
+              <th id="th-4" class="p-3 text-center font-semibold border-r border-slate-200">Thứ 4</th>
+              <th id="th-5" class="p-3 text-center font-semibold border-r border-slate-200">Thứ 5</th>
+              <th id="th-6" class="p-3 text-center font-semibold border-r border-slate-200">Thứ 6</th>
+              <th id="th-7" class="p-3 text-center font-semibold">Thứ 7</th>
+            </tr>
+          </thead>
+          <tbody id="timetableBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- TAB 2: EXAMS -->
+    <section id="viewExams" class="hidden">
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="p-4 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2">
+          <h2 class="font-bold text-slate-800">Lịch Thi Dự Kiến — <span id="examPlanTitle" class="text-red-900"></span></h2>
+          <span class="text-xs text-slate-500">Giờ thi: Ca 1 (7g00) • Ca 2 (9g30) • Ca 3 (13g00) • Ca 4 (15g30) • Ca 5 (18g00)</span>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm text-left">
+            <thead class="bg-slate-50 text-slate-600 border-b border-slate-200 text-xs uppercase">
+              <tr>
+                <th class="p-3.5">Ngày thi</th>
+                <th class="p-3.5">Ca thi & Giờ thi</th>
+                <th class="p-3.5">Mã học phần</th>
+                <th class="p-3.5">Tên học phần</th>
+                <th class="p-3.5">Phòng thi / Cơ sở</th>
+              </tr>
+            </thead>
+            <tbody id="examTableBody" class="divide-y divide-slate-200"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: SELECTED COURSES -->
+    <section id="viewCourses" class="hidden space-y-4">
+      <div id="selectedCoursesGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+    </section>
+
+  </main>
+
+  <!-- Modal Thêm Môn Học -->
+  <div id="addModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs hidden items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-2xl max-w-xl w-full shadow-2xl border border-slate-200 overflow-hidden">
+      <div class="px-6 py-4 bg-red-900 text-white flex items-center justify-between">
+        <div>
+          <h3 class="font-bold text-lg">Thêm Môn Học Bằng Mã Học Phần</h3>
+          <p class="text-xs text-red-200">Đang thêm vào: <strong id="modalPlanName"></strong></p>
+        </div>
+        <button onclick="closeAddModal()" class="text-red-200 hover:text-white text-xl leading-none">&times;</button>
+      </div>
+
+      <div class="p-6 space-y-4">
+        <div>
+          <label class="block text-xs font-semibold uppercase text-slate-500 mb-1.5">Nhập mã lớp học phần (VD: BAF716_262_D01, BAF724_262_D02)</label>
+          <div class="flex gap-2">
+            <input type="text" id="courseInput" oninput="previewCourse()" placeholder="Nhập hoặc dán mã lớp học phần..." class="flex-1 border border-slate-300 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-red-800 uppercase" />
+            <button onclick="addCourseFromInput()" class="bg-red-900 hover:bg-red-800 text-white font-semibold px-5 py-2.5 rounded-xl text-sm transition">Thêm</button>
           </div>
-          <button
+          <p class="text-xs text-slate-400 mt-1.5">Mẹo: Có thể dán cùng lúc nhiều mã học phần cách nhau bằng dấu phẩy hoặc dấu cách.</p>
+        </div>
+
+        <!-- Live Preview Box -->
+        <div id="previewBox" class="hidden max-h-64 overflow-y-auto rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-2.5 text-sm"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL ĐĂNG NHẬP / ĐĂNG KÝ -->
+  <div id="authModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-slate-200 overflow-hidden">
+      <div class="px-6 py-4 bg-red-900 text-white flex items-center justify-between">
+        <div>
+          <h3 id="authModalTitle" class="font-bold text-lg">Đăng Nhập Tài Khoản</h3>
+          <p class="text-xs text-red-200">Lưu trữ và tách biệt thời khóa biểu theo từng sinh viên</p>
+        </div>
+        <button onclick="closeAuthModal()" class="text-red-200 hover:text-white text-xl leading-none">&times;</button>
+      </div>
+
+      <div class="grid grid-cols-2 border-b border-slate-200 bg-slate-50 text-sm font-semibold">
+        <button id="tabAuthLogin" onclick="switchAuthMode('login')" class="py-3 text-red-900 border-b-2 border-red-900 bg-white">Đăng nhập</button>
+        <button id="tabAuthRegister" onclick="switchAuthMode('register')" class="py-3 text-slate-500 hover:text-slate-800">Đăng ký mới</button>
+      </div>
+
+      <form id="authForm" onsubmit="handleAuthSubmit(event)" class="p-6 space-y-4">
+        <div id="authErrorBox" class="hidden bg-red-50 border border-red-200 text-red-700 text-xs px-3 py-2.5 rounded-lg font-medium"></div>
+
+        <div id="registerNameGroup" class="hidden">
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Họ và tên hiển thị</label>
+          <input type="text" id="authFullName" placeholder="VD: Nguyễn Thị Hoài" class="w-full border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-800" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Tên đăng nhập hoặc MSSV</label>
+          <input type="text" id="authUsername" required placeholder="VD: 0306241234 hoặc maihoai" class="w-full border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-800" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Mật khẩu</label>
+          <input type="password" id="authPassword" required placeholder="Nhập mật khẩu (tối thiểu 4 ký tự)..." class="w-full border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-800" />
+        </div>
+
+        <div id="registerConfirmGroup" class="hidden">
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Xác nhận lại mật khẩu</label>
+          <input type="password" id="authConfirmPassword" placeholder="Nhập lại mật khẩu..." class="w-full border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-800" />
+        </div>
+
+        <div id="importGuestOption" class="hidden bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-900 flex items-start gap-2">
+          <input type="checkbox" id="migrateGuestData" checked class="mt-0.5 rounded text-red-900 focus:ring-red-800" />
+          <label for="migrateGuestData">Chuyển các kế hoạch thời khóa biểu hiện tại (chế độ Khách) vào tài khoản mới này.</label>
+        </div>
+
+        <button type="submit" id="authSubmitBtn" class="w-full bg-red-900 hover:bg-red-800 text-white font-semibold py-2.5 rounded-xl text-sm shadow transition">
+          Đăng nhập
+        </button>
+
+        <p class="text-[11px] text-slate-400 text-center leading-relaxed">
+          Mật khẩu được mã hóa SHA-256 trên trình duyệt. Dùng nút <strong>"Lưu kế hoạch"</strong> nếu bạn muốn chuyển phương án TKB sang máy tính hoặc điện thoại khác.
+        </p>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const WEEK1_START = new Date(2027, 1, 15); // 15/02/2027
+    const TOTAL_WEEKS = 22;
+
+    const EXAM_TIME_MAP = {
+      "Ca 1": "07:00", "Ca S1": "07:00",
+      "Ca S2": "08:30",
+      "Ca 2": "09:30",
+      "Ca S3": "10:00",
+      "Ca 3": "13:00", "Ca C1": "13:00",
+      "Ca C2": "14:30",
+      "Ca 4": "15:30",
+      "Ca C3": "16:00",
+      "Ca 5": "18:00"
+    };
+
+    const SESSION_TIME_MAP = {
+      "S": "Ca Sáng (07:00 – 11:05)",
+      "C": "Ca Chiều (13:00 – 17:05)",
+      "1-2": "Tiết 1–2 (07:00 – 08:30)",
+      "1-3": "Tiết 1–3 (07:00 – 09:15)",
+      "3-5": "Tiết 3–5 (08:30 – 11:05)",
+      "4-5": "Tiết 4–5 (09:35 – 11:05)",
+      "6-8": "Tiết 6–8 (13:00 – 15:15)",
+      "9-10": "Tiết 9–10 (15:35 – 17:05)"
+    };
+
+    const PALETTE = [
+      "bg-blue-50 border-blue-400 text-blue-950",
+      "bg-emerald-50 border-emerald-400 text-emerald-950",
+      "bg-amber-50 border-amber-400 text-amber-950",
+      "bg-purple-50 border-purple-400 text-purple-950",
+      "bg-rose-50 border-rose-400 text-rose-950",
+      "bg-cyan-50 border-cyan-400 text-cyan-950",
+      "bg-indigo-50 border-indigo-400 text-indigo-950",
+      "bg-teal-50 border-teal-400 text-teal-950"
+    ];
+
+    function parseWeeks(str) {
+      const res = new Set();
+      String(str || "").split(",").forEach(part => {
+        part = part.trim();
+        if (!part) return;
+        if (part.includes("-")) {
+          const [a, b] = part.split("-").map(x => parseInt(x.trim(), 10));
+          if (!isNaN(a) && !isNaN(b)) {
+            for (let w = a; w <= b; w++) res.add(w);
+          }
+        } else {
+          const w = parseInt(part, 10);
+          if (!isNaN(w)) res.add(w);
+        }
+      });
+      return Array.from(res).sort((a, b) => a - b);
+    }
+
+    // ==========================================
+    // 1. QUẢN LÝ DỮ LIỆU HỌC PHẦN (EXCEL / JSON)
+    // ==========================================
+    const STORAGE_KEY_COURSE_DB = "hub_tkb_courses_db_v2";
+    const STORAGE_KEY_COURSE_META = "hub_tkb_courses_meta_v2";
+    let COURSES_DB = {};
+
+    function unpackCompactDb(compactObj) {
+      const unpacked = {};
+      Object.entries(compactObj || {}).forEach(([code, arr]) => {
+        if (Array.isArray(arr)) {
+          const [name, rawSessions, examCa, examDate, examCampus, examPm] = arr;
+          const examRoom = examPm === "PM"
+            ? `Phòng máy - Cơ sở ${examCampus || "TĐ"} (Chưa phân số phòng)`
+            : `Cơ sở ${examCampus || "TĐ"} (Chưa phân phòng trên file)`;
+          unpacked[code.toUpperCase()] = {
+            code: code.toUpperCase(),
+            name,
+            sessions: (rawSessions || []).map(([ca, thu, tuanRaw, room]) => ({
+              ca,
+              thu: parseInt(thu, 10),
+              tuanRaw,
+              weeks: parseWeeks(tuanRaw),
+              room
+            })),
+            examCa: examCa || "",
+            examDate: examDate || "",
+            examRoom
+          };
+        } else if (arr && typeof arr === "object" && arr.code) {
+          unpacked[code.toUpperCase()] = {
+            ...arr,
+            code: code.toUpperCase(),
+            sessions: (arr.sessions || []).map(s => ({
+              ...s,
+              thu: parseInt(s.thu, 10),
+              weeks: Array.isArray(s.weeks) ? s.weeks : parseWeeks(s.tuanRaw)
+            }))
+          };
+        }
+      });
+      return unpacked;
+    }
+
+    function updateDbStatusUI(sourceLabel) {
+      const total = Object.keys(COURSES_DB).length;
+      const dot = document.getElementById("dbStatusDot");
+      const text = document.getElementById("dbStatusText");
+      const banner = document.getElementById("emptyDbBanner");
+
+      if (total > 0) {
+        dot.className = "w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0";
+        text.textContent = `Đã nạp ${total} lớp học phần${sourceLabel ? ` từ "${sourceLabel}"` : ""}`;
+        banner.classList.add("hidden");
+      } else {
+        dot.className = "w-2.5 h-2.5 rounded-full bg-amber-500 shrink-0";
+        text.textContent = "Chưa nạp dữ liệu lớp học phần (Vui lòng tải file Excel hoặc JSON)";
+        banner.classList.remove("hidden");
+      }
+    }
+
+    function loadSavedCourseDb() {
+      const raw = localStorage.getItem(STORAGE_KEY_COURSE_DB);
+      const meta = localStorage.getItem(STORAGE_KEY_COURSE_META) || "";
+      if (raw) {
+        try {
+          COURSES_DB = unpackCompactDb(JSON.parse(raw));
+        } catch (e) {
+          COURSES_DB = {};
+        }
+      }
+      updateDbStatusUI(meta);
+    }
+
+    function parseExcelWorkbook(arrayBuffer) {
+      const workbook = XLSX.read(new Uint8Array(arrayBuffer), { type: "array" });
+      const parsedMap = {};
+      // Ưu tiên sheet "41" (sheet tổng hợp có cột điều chỉnh lịch) lên sau cùng để ghi đè chính xác nhất
+      const order = [...workbook.SheetNames].sort((a, b) => (a.trim() === "41" ? 1 : b.trim() === "41" ? -1 : 0));
+
+      order.forEach(sheetName => {
+        const sheet = workbook.Sheets[sheetName];
+        const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "", raw: false });
+        const hdrIdx = rows.findIndex(r => String(r[0]).trim() === "STT");
+        if (hdrIdx === -1) return;
+
+        const headers = rows[hdrIdx].map(h => String(h).replace(/\s+/g, " ").trim());
+        const idxCode = headers.findIndex(h => h === "LỚP HP");
+        const idxName = headers.findIndex(h => h === "TÊN HỌC PHẦN");
+        const idxCa   = headers.findIndex(h => h === "CA TIẾT");
+        const idxThu  = headers.findIndex(h => h === "THỨ");
+        const idxTuan = headers.findIndex(h => h === "TUẦN");
+        const idxRoom = headers.findIndex(h => h === "GĐ HỌC");
+        const idxExamCa = headers.findIndex(h => h.startsWith("CA THI"));
+        const idxExamDate = headers.findIndex(h => h.startsWith("NGÀY THI"));
+        const idxExamCampus = headers.findIndex(h => h === "CƠ SỞ THI");
+        const idxExamPm = headers.findIndex(h => h === "(THI CẬP NHẬT)");
+
+        if (idxCode === -1 || idxName === -1) return;
+
+        for (let i = hdrIdx + 1; i < rows.length; i++) {
+          const r = rows[i];
+          const code = String(r[idxCode] || "").trim().toUpperCase();
+          if (!code || code === "LỚP HP") continue;
+
+          const splitLines = (val) => String(val || "").split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+          const caLines = splitLines(r[idxCa]);
+          const thuLines = splitLines(r[idxThu]);
+          const tuanLines = splitLines(r[idxTuan]);
+          const roomLines = splitLines(r[idxRoom]);
+
+          const n = Math.max(caLines.length, thuLines.length, tuanLines.length, roomLines.length, 1);
+          const expand = (arr) => {
+            if (arr.length === n) return arr;
+            if (arr.length === 1) return Array(n).fill(arr[0]);
+            return Array.from({ length: n }, (_, k) => arr[k] ?? arr[arr.length - 1] ?? "");
+          };
+
+          const caExp = expand(caLines);
+          const thuExp = expand(thuLines);
+          const tuanExp = expand(tuanLines);
+          const roomExp = expand(roomLines);
+
+          const sessions = [];
+          for (let k = 0; k < n; k++) {
+            sessions.push({
+              ca: caExp[k],
+              thu: parseInt(thuExp[k], 10),
+              tuanRaw: tuanExp[k],
+              weeks: parseWeeks(tuanExp[k]),
+              room: roomExp[k]
+            });
+          }
+
+          const campus = idxExamCampus !== -1 ? String(r[idxExamCampus] || "TĐ").trim() : "TĐ";
+          const pmFlag = idxExamPm !== -1 ? String(r[idxExamPm] || "").trim() : "";
+          const examRoomText = pmFlag === "PM"
+            ? `Phòng máy - Cơ sở ${campus} (Chưa phân số phòng)`
+            : `Cơ sở ${campus} (Chưa phân phòng trên file)`;
+
+          parsedMap[code] = {
+            code,
+            name: String(r[idxName] || "").trim(),
+            sessions,
+            examCa: idxExamCa !== -1 ? String(r[idxExamCa] || "").trim() : "",
+            examDate: idxExamDate !== -1 ? String(r[idxExamDate] || "").trim() : "",
+            examRoom: examRoomText
+          };
+        }
+      });
+
+      return parsedMap;
+    }
+
+    function handleCourseDbFile(file) {
+      if (!file) return;
+      const ext = file.name.split(".").pop().toLowerCase();
+
+      if (ext === "json") {
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+          try {
+            const jsonObj = JSON.parse(evt.target.result);
+            if (jsonObj && Array.isArray(jsonObj.plans)) {
+              alert("Đây là tệp sao lưu kế hoạch cá nhân (A, B, C). Vui lòng nạp ở nút 'Mở kế hoạch' hoặc chọn tệp JSON dữ liệu môn học.");
+              return;
+            }
+            const unpacked = unpackCompactDb(jsonObj);
+            const count = Object.keys(unpacked).length;
+            if (count === 0) {
+              alert("Tệp JSON không chứa dữ liệu lớp học phần hợp lệ.");
+              return;
+            }
+            COURSES_DB = unpacked;
+            localStorage.setItem(STORAGE_KEY_COURSE_DB, JSON.stringify(COURSES_DB));
+            localStorage.setItem(STORAGE_KEY_COURSE_META, file.name);
+            updateDbStatusUI(file.name);
+            renderAll();
+            alert(`Đã nạp thành công ${count} lớp học phần từ "${file.name}"!`);
+          } catch (err) {
+            alert("Lỗi đọc tệp JSON: " + err.message);
+          }
+        };
+        reader.readAsText(file);
+      } else if (ext === "xlsx" || ext === "xls") {
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+          try {
+            const parsed = parseExcelWorkbook(evt.target.result);
+            const count = Object.keys(parsed).length;
+            if (count === 0) {
+              alert("Không tìm thấy bảng dữ liệu lớp học phần hợp lệ trong file Excel.");
+              return;
+            }
+            COURSES_DB = parsed;
+            localStorage.setItem(STORAGE_KEY_COURSE_DB, JSON.stringify(COURSES_DB));
+            localStorage.setItem(STORAGE_KEY_COURSE_META, file.name);
+            updateDbStatusUI(file.name);
+            renderAll();
+            alert(`Đã nạp thành công ${count} lớp học phần từ file Excel "${file.name}"!`);
+          } catch (err) {
+            alert("Lỗi đọc tệp Excel: " + err.message);
+          }
+        };
+        reader.readAsArrayBuffer(file);
+      } else {
+        alert("Vui lòng chọn file có định dạng .xlsx, .xls hoặc .json");
+      }
+    }
+
+    document.getElementById("courseDbUpload").addEventListener("change", function(e) {
+      handleCourseDbFile(e.target.files[0]);
+      e.target.value = "";
+    });
+
+    document.getElementById("courseDbUploadBanner").addEventListener("change", function(e) {
+      handleCourseDbFile(e.target.files[0]);
+      e.target.value = "";
+    });
+
+    function exportCourseDbJson() {
+      const count = Object.keys(COURSES_DB).length;
+      if (count === 0) {
+        alert("Chưa có dữ liệu học phần nào để xuất. Vui lòng nạp file Excel trước.");
+        return;
+      }
+      const blob = new Blob([JSON.stringify(COURSES_DB)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `HUB_Courses_DB_${count}_lop.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    // ==========================================
+    // 2. HỆ THỐNG TÀI KHOẢN ĐA NGƯỜI DÙNG
+    // ==========================================
+    const STORAGE_KEY_USERS = "hub_tkb_users_v1";
+    const STORAGE_KEY_SESSION = "hub_tkb_current_user_v1";
+    let authMode = "login";
+
+    async function hashPassword(password) {
+      const encoder = new TextEncoder();
+      const data = encoder.encode("HUB_SALT_2026_" + password);
+      const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+      return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, "0")).join("");
+    }
+
+    function getUsersMap() {
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY_USERS) || "{}");
+      } catch (e) {
+        return {};
+      }
+    }
+
+    function saveUsersMap(map) {
+      localStorage.setItem(STORAGE_KEY_USERS, JSON.stringify(map));
+    }
+
+    function getCurrentUser() {
+      const username = localStorage.getItem(STORAGE_KEY_SESSION);
+      if (!username) return null;
+      const users = getUsersMap();
+      return users[username] || null;
+    }
+
+    function getPlansStorageKey() {
+      const user = getCurrentUser();
+      return user ? `hub_tkb_plans_user_${user.username}` : "hub_tkb_plans_v1";
+    }
+
+    function renderAuthHeader() {
+      const area = document.getElementById("authHeaderArea");
+      const badge = document.getElementById("currentAccountBadge");
+      const user = getCurrentUser();
+
+      if (user) {
+        badge.textContent = `${user.fullName} (@${user.username})`;
+        area.innerHTML = `
+          <div class="flex items-center gap-2 bg-red-950/70 border border-red-700 px-3 py-1.5 rounded-lg text-xs">
+            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+            <span class="font-semibold text-amber-300 max-w-[130px] truncate" title="${user.fullName}">${user.fullName}</span>
+            <button onclick="logoutAccount()" class="text-red-200 hover:text-white underline ml-1">Thoát</button>
+          </div>
+        `;
+      } else {
+        badge.textContent = "Khách (Chưa đăng nhập)";
+        area.innerHTML = `
+          <button onclick="openAuthModal('login')" class="bg-white/15 hover:bg-white/25 border border-white/30 text-white text-xs font-semibold px-3 py-2 rounded-lg transition">
+            Đăng nhập / Đăng ký
+          </button>
+        `;
+      }
+    }
+
+    function openAuthModal(mode = "login") {
+      switchAuthMode(mode);
+      document.getElementById("authErrorBox").classList.add("hidden");
+      document.getElementById("authForm").reset();
+      document.getElementById("authModal").classList.remove("hidden");
+      document.getElementById("authModal").classList.add("flex");
+    }
+
+    function closeAuthModal() {
+      document.getElementById("authModal").classList.add("hidden");
+      document.getElementById("authModal").classList.remove("flex");
+    }
+
+    function switchAuthMode(mode) {
+      authMode = mode;
+      const isReg = mode === "register";
+      document.getElementById("authModalTitle").textContent = isReg ? "Đăng Ký Tài Khoản Mới" : "Đăng Nhập Tài Khoản";
+      document.getElementById("authSubmitBtn").textContent = isReg ? "Tạo tài khoản & Đăng nhập" : "Đăng nhập";
+
+      document.getElementById("registerNameGroup").classList.toggle("hidden", !isReg);
+      document.getElementById("registerConfirmGroup").classList.toggle("hidden", !isReg);
+      document.getElementById("importGuestOption").classList.toggle("hidden", !isReg);
+
+      const tabLogin = document.getElementById("tabAuthLogin");
+      const tabReg = document.getElementById("tabAuthRegister");
+      if (isReg) {
+        tabReg.className = "py-3 text-red-900 border-b-2 border-red-900 bg-white";
+        tabLogin.className = "py-3 text-slate-500 hover:text-slate-800";
+      } else {
+        tabLogin.className = "py-3 text-red-900 border-b-2 border-red-900 bg-white";
+        tabReg.className = "py-3 text-slate-500 hover:text-slate-800";
+      }
+      document.getElementById("authErrorBox").classList.add("hidden");
+    }
+
+    async function handleAuthSubmit(e) {
+      e.preventDefault();
+      const errBox = document.getElementById("authErrorBox");
+      const username = document.getElementById("authUsername").value.trim().toLowerCase();
+      const password = document.getElementById("authPassword").value;
+
+      if (!/^[a-z0-9_.-]{3,30}$/.test(username)) {
+        errBox.textContent = "Tên đăng nhập/MSSV từ 3–30 ký tự (chữ không dấu, số, dấu chấm hoặc gạch dưới).";
+        errBox.classList.remove("hidden");
+        return;
+      }
+      if (password.length < 4) {
+        errBox.textContent = "Mật khẩu cần tối thiểu 4 ký tự.";
+        errBox.classList.remove("hidden");
+        return;
+      }
+
+      const users = getUsersMap();
+      const passHash = await hashPassword(password);
+
+      if (authMode === "register") {
+        const fullName = document.getElementById("authFullName").value.trim() || username.toUpperCase();
+        const confirmPass = document.getElementById("authConfirmPassword").value;
+        if (password !== confirmPass) {
+          errBox.textContent = "Mật khẩu xác nhận không khớp.";
+          errBox.classList.remove("hidden");
+          return;
+        }
+        if (users[username]) {
+          errBox.textContent = "Tên đăng nhập/MSSV này đã tồn tại. Vui lòng chọn tên khác hoặc đăng nhập.";
+          errBox.classList.remove("hidden");
+          return;
+        }
+
+        users[username] = { username, fullName, passHash, createdAt: Date.now() };
+        saveUsersMap(users);
+
+        // Chuyển dữ liệu từ chế độ Khách sang tài khoản mới nếu được chọn
+        const migrate = document.getElementById("migrateGuestData").checked;
+        if (migrate) {
+          const guestRaw = localStorage.getItem("hub_tkb_plans_v1");
+          if (guestRaw) {
+            localStorage.setItem(`hub_tkb_plans_user_${username}`, guestRaw);
+          }
+        }
+
+        localStorage.setItem(STORAGE_KEY_SESSION, username);
+        appState = loadPlansState();
+        renderAuthHeader();
+        renderAll();
+        closeAuthModal();
+      } else {
+        const record = users[username];
+        if (!record || record.passHash !== passHash) {
+          errBox.textContent = "Sai tên đăng nhập hoặc mật khẩu.";
+          errBox.classList.remove("hidden");
+          return;
+        }
+        localStorage.setItem(STORAGE_KEY_SESSION, username);
+        appState = loadPlansState();
+        renderAuthHeader();
+        renderAll();
+        closeAuthModal();
+      }
+    }
+
+    function logoutAccount() {
+      if (!confirm("Bạn muốn đăng xuất khỏi tài khoản hiện tại?")) return;
+      localStorage.removeItem(STORAGE_KEY_SESSION);
+      appState = loadPlansState();
+      renderAuthHeader();
+      renderAll();
+    }
+
+    // ==========================================
+    // 3. QUẢN LÝ ĐA KẾ HOẠCH (A, B, C, D...)
+    // ==========================================
+    let appState = null;
+
+    function loadPlansState() {
+      const key = getPlansStorageKey();
+      const raw = localStorage.getItem(key);
+      if (raw) {
+        try {
+          const parsed = JSON.parse(raw);
+          if (parsed && Array.isArray(parsed.plans) && parsed.plans.length > 0) {
+            return parsed;
+          }
+        } catch (e) {}
+      }
+      return {
+        activeId: "plan_a",
+        plans: [
+          { id: "plan_a", name: "Kế hoạch A", courses: [] },
+          { id: "plan_b", name: "Kế hoạch B", courses: [] },
+          { id: "plan_c", name: "Kế hoạch C", courses: [] }
+        ]
+      };
+    }
+
+    function savePlansState() {
+      localStorage.setItem(getPlansStorageKey(), JSON.stringify(appState));
+      const ind = document.getElementById("saveIndicator");
+      ind.textContent = "✓ Đã lưu tự động";
+      ind.classList.remove("opacity-50");
+    }
+
+    function getActivePlan() {
+      let plan = appState.plans.find(p => p.id === appState.activeId);
+      if (!plan) {
+        plan = appState.plans[0];
+        appState.activeId = plan.id;
+      }
+      return plan;
+    }
+
+    function getNextPlanName() {
+      const existingNames = new Set(appState.plans.map(p => p.name.trim()));
+      const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+      for (let i = 0; i < letters.length; i++) {
+        const candidate = `Kế hoạch ${letters[i]}`;
+        if (!existingNames.has(candidate)) return candidate;
+      }
+      return `Kế hoạch ${appState.plans.length + 1}`;
+    }
+
+    function selectPlan(id) {
+      appState.activeId = id;
+      savePlansState();
+      renderAll();
+    }
+
+    function createNewPlan() {
+      const defaultName = getNextPlanName();
+      const name = prompt("Nhập tên kế hoạch thời khóa biểu mới:", defaultName);
+      if (name === null) return;
+      const cleanName = name.trim() || defaultName;
+      const newId = "plan_" + Date.now();
+      appState.plans.push({ id: newId, name: cleanName, courses: [] });
+      appState.activeId = newId;
+      savePlansState();
+      renderAll();
+    }
+
+    function duplicateCurrentPlan() {
+      const current = getActivePlan();
+      const defaultName = `${getNextPlanName()} (Bản sao ${current.name})`;
+      const name = prompt("Đặt tên cho bản sao kế hoạch này:", defaultName);
+      if (name === null) return;
+      const cleanName = name.trim() || defaultName;
+      const newId = "plan_" + Date.now();
+      appState.plans.push({
+        id: newId,
+        name: cleanName,
+        courses: [...current.courses]
+      });
+      appState.activeId = newId;
+      savePlansState();
+      renderAll();
+    }
+
+    function renameCurrentPlan() {
+      const current = getActivePlan();
+      const name = prompt("Nhập tên mới cho kế hoạch:", current.name);
+      if (name === null || !name.trim()) return;
+      current.name = name.trim();
+      savePlansState();
+      renderAll();
+    }
+
+    function deleteCurrentPlan() {
+      if (appState.plans.length <= 1) {
+        alert("Cần giữ lại ít nhất 1 kế hoạch thời khóa biểu.");
+        return;
+      }
+      const current = getActivePlan();
+      if (!confirm(`Bạn có chắc muốn xóa "${current.name}" không?`)) return;
+      appState.plans = appState.plans.filter(p => p.id !== current.id);
+      appState.activeId = appState.plans[0].id;
+      savePlansState();
+      renderAll();
+    }
+
+    // Xuất / Nhập file sao lưu kế hoạch cá nhân JSON
+    function exportBackup() {
+      const user = getCurrentUser();
+      const suffix = user ? `_${user.username}` : "";
+      const blob = new Blob([JSON.stringify(appState, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `KeHoach_TKB_HUB${suffix}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    document.getElementById("jsonImport").addEventListener("change", function(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        try {
+          const imported = JSON.parse(evt.target.result);
+          if (imported && Array.isArray(imported.plans) && imported.plans.length > 0) {
+            appState = imported;
+            savePlansState();
+            renderAll();
+            alert(`Đã khôi phục thành công ${appState.plans.length} phương án thời khóa biểu!`);
+          } else {
+            alert("File sao lưu không đúng định dạng kế hoạch cá nhân.");
+          }
+        } catch (err) {
+          alert("Không thể đọc file sao lưu JSON.");
+        }
+      };
+      reader.readAsText(file);
+      e.target.value = "";
+    });
+
+    // ==========================================
+    // 4. HIỂN THỊ THỜI KHÓA BIỂU & LỊCH THI
+    // ==========================================
+    function getWeekDates(weekNum) {
+      const start = new Date(WEEK1_START);
+      start.setDate(WEEK1_START.getDate() + (weekNum - 1) * 7);
+      const end = new Date(start);
+      end.setDate(start.getDate() + 6);
+      return { start, end };
+    }
+
+    function fmtDate(d) {
+      const dd = String(d.getDate()).padStart(2, "0");
+      const mm = String(d.getMonth() + 1).padStart(2, "0");
+      return `${dd}/${mm}`;
+    }
+
+    function fmtFullDate(d) {
+      return `${fmtDate(d)}/${d.getFullYear()}`;
+    }
+
+    function initWeekSelector() {
+      const sel = document.getElementById("weekSelector");
+      sel.innerHTML = "";
+      for (let w = 1; w <= TOTAL_WEEKS; w++) {
+        const { start, end } = getWeekDates(w);
+        const opt = document.createElement("option");
+        opt.value = w;
+        opt.textContent = `Tuần ${w} (${fmtFullDate(start)} – ${fmtFullDate(end)})`;
+        sel.appendChild(opt);
+      }
+    }
+
+    function changeWeek(delta) {
+      const sel = document.getElementById("weekSelector");
+      const next = Math.min(TOTAL_WEEKS, Math.max(1, parseInt(sel.value, 10) + delta));
+      sel.value = next;
+      renderAll();
+    }
+
+    function getPeriodGroup(ca) {
+      const c = String(ca).toUpperCase().trim();
+      if (c === "C" || c.startsWith("6") || c.startsWith("9") || c.includes("10")) return "C";
+      return "S";
+    }
+
+    function detectConflicts(selectedCodes) {
+      const conflicts = [];
+      const activeCourses = selectedCodes.map(c => COURSES_DB[c]).filter(Boolean);
+
+      for (let i = 0; i < activeCourses.length; i++) {
+        for (let j = i + 1; j < activeCourses.length; j++) {
+          const a = activeCourses[i];
+          const b = activeCourses[j];
+          a.sessions.forEach(sa => {
+            b.sessions.forEach(sb => {
+              if (sa.thu === sb.thu && getPeriodGroup(sa.ca) === getPeriodGroup(sb.ca)) {
+                const overlapWeeks = sa.weeks.filter(w => sb.weeks.includes(w));
+                if (overlapWeeks.length > 0) {
+                  conflicts.push(`Trùng lịch học: <strong>${a.code}</strong> và <strong>${b.code}</strong> vào Thứ ${sa.thu} (Ca ${getPeriodGroup(sa.ca)}) tại các tuần: ${overlapWeeks.join(", ")}.`);
+                }
+              }
+            });
+          });
+          if (a.examDate && b.examDate && a.examDate === b.examDate && a.examCa === b.examCa) {
+            conflicts.push(`Trùng lịch thi: <strong>${a.code}</strong> và <strong>${b.code}</strong> cùng thi ngày ${a.examDate} (${a.examCa}).`);
+          }
+        }
+      }
+      return conflicts;
+    }
+
+    function renderPlanTabs() {
+      const container = document.getElementById("planTabsContainer");
+      const activePlan = getActivePlan();
+
+      container.innerHTML = appState.plans.map(plan => {
+        const isActive = plan.id === activePlan.id;
+        const count = plan.courses.length;
+        const conflictsCount = detectConflicts(plan.courses).length;
+        const conflictDot = conflictsCount > 0
+          ? `<span class="ml-1.5 px-1.5 py-0.2 rounded-full text-[10px] font-bold ${isActive ? 'bg-amber-400 text-red-950' : 'bg-red-100 text-red-700'}">!</span>`
+          : "";
+
+        return `
+          <button onclick="selectPlan('${plan.id}')" class="px-3.5 py-2 rounded-xl border text-xs font-semibold transition flex items-center gap-1.5 ${isActive ? 'plan-pill-active' : 'plan-pill-inactive'}">
+            <span>${plan.name}</span>
+            <span class="px-1.5 py-0.5 rounded-md text-[11px] ${isActive ? 'bg-red-800 text-red-100' : 'bg-slate-100 text-slate-600'}">${count} môn</span>
+            ${conflictDot}
+          </button>
+        `;
+      }).join("");
+
+      document.getElementById("currentPlanTitle").textContent = activePlan.name;
+      document.getElementById("examPlanTitle").textContent = activePlan.name;
+      document.getElementById("conflictPlanName").textContent = activePlan.name;
+    }
+
+    function renderAll() {
+      renderPlanTabs();
+      const activePlan = getActivePlan();
+      const selectedCodes = activePlan.courses;
+
+      const week = parseInt(document.getElementById("weekSelector").value || "1", 10);
+      const { start } = getWeekDates(week);
+
+      for (let thu = 2; thu <= 7; thu++) {
+        const d = new Date(start);
+        d.setDate(start.getDate() + (thu - 2));
+        document.getElementById(`th-${thu}`).innerHTML = `Thứ ${thu}<div class="text-xs font-normal text-slate-500">${fmtDate(d)}</div>`;
+      }
+
+      const conflicts = detectConflicts(selectedCodes);
+      const banner = document.getElementById("conflictBanner");
+      const list = document.getElementById("conflictList");
+      if (conflicts.length > 0) {
+        banner.classList.remove("hidden");
+        list.innerHTML = conflicts.map(c => `<li>${c}</li>`).join("");
+      } else {
+        banner.classList.add("hidden");
+      }
+
+      const tbody = document.getElementById("timetableBody");
+      const shifts = [
+        { key: "S", label: "CA SÁNG", sub: "Tiết 1–5\n(07:00–11:05)" },
+        { key: "C", label: "CA CHIỀU", sub: "Tiết 6–10\n(13:00–17:05)" }
+      ];
+
+      tbody.innerHTML = shifts.map(shift => {
+        const cells = [2, 3, 4, 5, 6, 7].map(thu => {
+          const items = [];
+          selectedCodes.forEach((code, idx) => {
+            const course = COURSES_DB[code];
+            if (!course) return;
+            const color = PALETTE[idx % PALETTE.length];
+            course.sessions.forEach(s => {
+              if (s.thu === thu && getPeriodGroup(s.ca) === shift.key && s.weeks.includes(week)) {
+                items.push({ course, session: s, color });
+              }
+            });
+          });
+
+          const cardsHtml = items.map(({ course, session, color }) => `
+            <div class="cell-card border-l-4 rounded-lg p-2.5 mb-2 last:mb-0 text-left shadow-2xs ${color}">
+              <div class="flex items-center justify-between gap-1">
+                <span class="text-[11px] font-bold tracking-wide">${course.code}</span>
+                <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-white/80">Phòng ${session.room}</span>
+              </div>
+              <div class="font-semibold text-xs mt-1 leading-snug">${course.name}</div>
+              <div class="text-[11px] opacity-80 mt-1">
+                ${SESSION_TIME_MAP[session.ca] || `Ca/Tiết: ${session.ca}`} • Tuần: ${session.tuanRaw}
+              </div>
+            </div>
+          `).join("");
+
+          return `<td class="p-2.5 align-top border-r last:border-r-0 border-slate-200 min-w-[140px] h-36 bg-white">${cardsHtml}</td>`;
+        }).join("");
+
+        return `
+          <tr class="border-b last:border-b-0 border-slate-200">
+            <td class="p-3 bg-slate-50 border-r border-slate-200 align-middle text-center">
+              <div class="font-bold text-slate-800 text-xs">${shift.label}</div>
+              <div class="text-[11px] text-slate-500 whitespace-pre-line mt-0.5">${shift.sub}</div>
+            </td>
+            ${cells}
+          </tr>
+        `;
+      }).join("");
+
+      const activeCourses = selectedCodes.map(c => COURSES_DB[c]).filter(Boolean);
+      document.getElementById("examCount").textContent = activeCourses.length;
+      document.getElementById("courseCount").textContent = activeCourses.length;
+
+      const sortedExams = [...activeCourses].sort((a, b) => {
+        const toTime = (str) => {
+          const [d, m, y] = (str || "31/12/2099").split("/").map(Number);
+          return new Date(y, m - 1, d).getTime();
+        };
+        return toTime(a.examDate) - toTime(b.examDate);
+      });
+
+      const examBody = document.getElementById("examTableBody");
+      if (sortedExams.length === 0) {
+        examBody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-slate-400">Chưa có môn học nào trong <strong>${activePlan.name}</strong>. Nhấn <strong>"Thêm môn học"</strong> để bắt đầu.</td></tr>`;
+      } else {
+        examBody.innerHTML = sortedExams.map(c => `
+          <tr class="hover:bg-slate-50">
+            <td class="p-3.5 font-semibold text-red-900">${c.examDate || "Chưa có"}</td>
+            <td class="p-3.5"><span class="px-2 py-1 rounded bg-amber-100 text-amber-900 font-semibold text-xs">${c.examCa}</span> <span class="text-slate-500 text-xs ml-1">(${EXAM_TIME_MAP[c.examCa] || "Theo thông báo"})</span></td>
+            <td class="p-3.5 font-mono text-xs font-semibold">${c.code}</td>
+            <td class="p-3.5 font-medium">${c.name}</td>
+            <td class="p-3.5 text-slate-600 text-xs">${c.examRoom}</td>
+          </tr>
+        `).join("");
+      }
+
+      const grid = document.getElementById("selectedCoursesGrid");
+      if (selectedCodes.length === 0) {
+        grid.innerHTML = `<div class="col-span-full bg-white rounded-xl border border-slate-200 p-8 text-center text-slate-400">Chưa có học phần nào được thêm vào <strong>${activePlan.name}</strong>.</div>`;
+      } else {
+        grid.innerHTML = selectedCodes.map(code => {
+          const c = COURSES_DB[code];
+          if (!c) {
+            return `
+              <div class="bg-amber-50 rounded-xl border border-amber-300 p-4 flex items-center justify-between">
+                <div>
+                  <span class="text-xs font-mono font-bold text-amber-900">${code}</span>
+                  <p class="text-xs text-amber-800 mt-1">Chưa có dữ liệu cho mã này. Hãy nạp file Excel/JSON chứa học phần tương ứng.</p>
+                </div>
+                <button onclick="removeCourse('${code}')" class="text-xs text-red-600 hover:underline font-medium">Xóa</button>
+              </div>
+            `;
+          }
+          const sessionLines = c.sessions.map(s => `
+            <div class="flex items-center justify-between text-xs bg-slate-50 px-3 py-2 rounded-lg border border-slate-200">
+              <span><strong>Thứ ${s.thu}</strong> • ${SESSION_TIME_MAP[s.ca] || s.ca} • Tuần <strong>${s.tuanRaw}</strong></span>
+              <span class="font-semibold text-red-900">Phòng ${s.room}</span>
+            </div>
+          `).join("");
+
+          return `
+            <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm flex flex-col justify-between gap-3">
+              <div>
+                <div class="flex items-start justify-between gap-2">
+                  <div>
+                    <span class="text-xs font-mono font-bold px-2 py-0.5 rounded bg-red-50 text-red-900">${c.code}</span>
+                    <h3 class="font-bold text-slate-800 mt-1.5">${c.name}</h3>
+                  </div>
+                  <button onclick="removeCourse('${c.code}')" class="text-xs text-slate-400 hover:text-red-600 px-2 py-1 rounded hover:bg-red-50">Xóa</button>
+                </div>
+                <div class="mt-3 space-y-1.5">${sessionLines}</div>
+              </div>
+              <div class="pt-2 border-t border-slate-100 text-xs text-slate-600 flex items-center justify-between">
+                <span>Lịch thi: <strong>${c.examDate}</strong> (${c.examCa} - ${EXAM_TIME_MAP[c.examCa] || ""})</span>
+                <span>${c.examRoom}</span>
+              </div>
+            </div>
+          `;
+        }).join("");
+      }
+    }
+
+    function openAddModal() {
+      if (Object.keys(COURSES_DB).length === 0) {
+        alert("Bạn chưa nạp dữ liệu lớp học phần. Vui lòng chọn file Excel (.xlsx) hoặc JSON (.json) trước nhé!");
+        return;
+      }
+      const activePlan = getActivePlan();
+      document.getElementById("modalPlanName").textContent = activePlan.name;
+      document.getElementById("addModal").classList.remove("hidden");
+      document.getElementById("addModal").classList.add("flex");
+      const inp = document.getElementById("courseInput");
+      inp.value = "";
+      inp.focus();
+      document.getElementById("previewBox").classList.add("hidden");
+    }
+
+    function closeAddModal() {
+      document.getElementById("addModal").classList.add("hidden");
+      document.getElementById("addModal").classList.remove("flex");
+    }
+
+    function previewCourse() {
+      const raw = document.getElementById("courseInput").value.trim().toUpperCase();
+      const box = document.getElementById("previewBox");
+      if (!raw) {
+        box.classList.add("hidden");
+        return;
+      }
+      const codes = raw.split(/[\s,;]+/).filter(Boolean);
+      const found = codes.map(c => COURSES_DB[c]).filter(Boolean);
+      const notFound = codes.filter(c => !COURSES_DB[c]);
+
+      if (found.length === 0) {
+        box.classList.remove("hidden");
+        box.innerHTML = `<p class="text-amber-700 text-xs">Không tìm thấy mã học phần: <strong>${codes.join(", ")}</strong>. Vui lòng kiểm tra lại đúng mã lớp HP (VD: <code>BAF716_262_D01</code>).</p>`;
+        return;
+      }
+
+      box.classList.remove("hidden");
+      let html = found.map(c => `
+        <div class="border-b last:border-b-0 border-slate-200 pb-2 last:pb-0">
+          <div class="font-bold text-red-900">${c.code} – ${c.name}</div>
+          ${c.sessions.map(s => `<div class="text-xs text-slate-700 mt-0.5">• Thứ <strong>${s.thu}</strong> | ${SESSION_TIME_MAP[s.ca] || s.ca} | Tuần: <strong>${s.tuanRaw}</strong> | Phòng: <strong>${s.room}</strong></div>`).join("")}
+          <div class="text-xs text-slate-500 mt-0.5">• Thi dự kiến: ${c.examDate} (${c.examCa}) – ${c.examRoom}</div>
+        </div>
+      `).join("");
+
+      if (notFound.length > 0) {
+        html += `<div class="text-xs text-amber-700 pt-1">Mã chưa khớp: <strong>${notFound.join(", ")}</strong></div>`;
+      }
+      box.innerHTML = html;
+    }
+
+    function addCourseFromInput() {
+      const raw = document.getElementById("courseInput").value.trim().toUpperCase();
+      if (!raw) return;
+      const activePlan = getActivePlan();
+      const codes = raw.split(/[\s,;]+/).filter(Boolean);
+      let added = 0;
+      codes.forEach(code => {
+        if (COURSES_DB[code] && !activePlan.courses.includes(code)) {
+          activePlan.courses.push(code);
+          added++;
+        }
+      });
+      if (added > 0) {
+        savePlansState();
+        renderAll();
+        closeAddModal();
+      } else {
+        previewCourse();
+      }
+    }
+
+    function removeCourse(code) {
+      const activePlan = getActivePlan();
+      activePlan.courses = activePlan.courses.filter(c => c !== code);
+      savePlansState();
+      renderAll();
+    }
+
+    function clearCurrentPlanCourses() {
+      const activePlan = getActivePlan();
+      if (!confirm(`Làm trống toàn bộ môn học trong "${activePlan.name}"?`)) return;
+      activePlan.courses = [];
+      savePlansState();
+      renderAll();
+    }
+
+    function switchTab(tab) {
+      ["timetable", "exams", "courses"].forEach(t => {
+        document.getElementById(`view${t.charAt(0).toUpperCase() + t.slice(1)}`).classList.toggle("hidden", t !== tab);
+        const btn = document.getElementById(`tabBtn${t.charAt(0).toUpperCase() + t.slice(1)}`);
+        if (t === tab) {
+          btn.classList.add("tab-active");
+          btn.classList.remove("text-slate-500");
+        } else {
+          btn.classList.remove("tab-active");
+          btn.classList.add("text-slate-500");
+        }
+      });
+    }
+
+    document.getElementById("courseInput").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") addCourseFromInput();
+    });
+
+    // Khởi chạy ứng dụng
+    loadSavedCourseDb();
+    appState = loadPlansState();
+    renderAuthHeader();
+    initWeekSelector();
+    renderAll();
+  </script>
+</body>
+</html>
