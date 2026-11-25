@@ -1570,7 +1570,7 @@
       const pool = getFilteredCoursePool();
 
       if (!raw) {
-        const displayList = pool.slice(0, 30);
+        const displayList = pool.slice(0, 100);
         if (displayList.length === 0) {
           box.classList.remove("hidden");
           box.innerHTML = `<p class="text-xs text-slate-500 text-center py-4">Không có lớp học phần nào trong bộ lọc <strong>${getFilterSummaryText()}</strong>.</p>`;
