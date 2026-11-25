@@ -1612,7 +1612,7 @@
       const matched = pool.filter(c =>
         c.code.toLowerCase().includes(keyword) ||
         c.name.toLowerCase().includes(keyword)
-      ).slice(0, 30);
+      ).slice(0, 100);
 
       if (matched.length === 0) {
         box.classList.remove("hidden");
