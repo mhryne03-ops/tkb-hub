@@ -57,9 +57,15 @@
           <input type="file" id="jsonImport" accept=".json" class="hidden" />
         </label>
 
-        <button onclick="openAddModal()" class="bg-amber-400 hover:bg-amber-300 text-red-950 font-semibold text-sm px-4 py-2 rounded-lg shadow flex items-center gap-1.5 transition">
+        <!-- Nút Chọn theo Ngành & Nhóm -->
+        <button onclick="openMajorGroupModal()" class="bg-white hover:bg-amber-50 text-red-900 font-semibold text-sm px-3.5 py-2 rounded-lg shadow flex items-center gap-1.5 transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+          <span>Chọn theo Ngành/Nhóm</span>
+        </button>
+
+        <button onclick="openAddModal()" class="bg-amber-400 hover:bg-amber-300 text-red-950 font-semibold text-sm px-3.5 py-2 rounded-lg shadow flex items-center gap-1.5 transition">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
-          <span>Thêm môn học</span>
+          <span>Thêm lớp HP</span>
         </button>
       </div>
     </div>
@@ -211,7 +217,67 @@
 
   </main>
 
-  <!-- Modal Thêm Môn Học -->
+  <!-- MODAL CHỌN TKB THEO NGÀNH HỌC & NHÓM HỌC -->
+  <div id="majorGroupModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs hidden items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh]">
+      <div class="px-6 py-4 bg-red-900 text-white flex items-center justify-between shrink-0">
+        <div>
+          <h3 class="font-bold text-lg">Nạp Nhanh TKB Theo Ngành & Nhóm Học</h3>
+          <p class="text-xs text-red-200">Áp dụng cho: <strong id="mgModalPlanName"></strong> (Tự động bao gồm các môn nhóm chung như Nhóm 12)</p>
+        </div>
+        <button onclick="closeMajorGroupModal()" class="text-red-200 hover:text-white text-xl leading-none">&times;</button>
+      </div>
+
+      <div class="p-6 space-y-4 overflow-y-auto flex-1">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold uppercase text-slate-600 mb-1.5">1. Chọn Ngành / Chuyên ngành</label>
+            <select id="mgMajorSelect" onchange="onMajorChange()" class="w-full border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm font-semibold text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-red-800"></select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase text-slate-600 mb-1.5">2. Chọn Nhóm học</label>
+            <select id="mgGroupSelect" onchange="renderMajorGroupPreview()" class="w-full border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm font-semibold text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-red-800"></select>
+          </div>
+        </div>
+
+        <!-- Danh sách các học phần tìm thấy -->
+        <div class="space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold uppercase text-slate-600">3. Danh sách học phần thuộc nhóm (Bỏ tick nếu đã học sớm):</span>
+            <div class="flex items-center gap-2 text-xs">
+              <button type="button" onclick="toggleAllMgCourses(true)" class="text-red-800 hover:underline font-medium">Chọn tất cả</button>
+              <span class="text-slate-300">|</span>
+              <button type="button" onclick="toggleAllMgCourses(false)" class="text-slate-500 hover:underline">Bỏ chọn</button>
+            </div>
+          </div>
+          <div id="mgCourseListBox" class="border border-slate-200 rounded-xl bg-slate-50 p-3 space-y-2 max-h-72 overflow-y-auto"></div>
+        </div>
+
+        <!-- Chế độ nạp -->
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 flex flex-wrap items-center gap-4 text-xs">
+          <span class="font-semibold text-slate-700">Chế độ áp dụng:</span>
+          <label class="inline-flex items-center gap-1.5 cursor-pointer">
+            <input type="radio" name="mgApplyMode" value="replace" checked class="text-red-900 focus:ring-red-800" />
+            <span>Thay thế toàn bộ môn hiện tại trong kế hoạch</span>
+          </label>
+          <label class="inline-flex items-center gap-1.5 cursor-pointer">
+            <input type="radio" name="mgApplyMode" value="append" class="text-red-900 focus:ring-red-800" />
+            <span>Gộp thêm vào các môn đã có</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="px-6 py-3.5 bg-slate-50 border-t border-slate-200 flex items-center justify-between shrink-0">
+        <span id="mgSelectedSummary" class="text-xs font-medium text-slate-600">Đã chọn 0 học phần</span>
+        <div class="flex items-center gap-2">
+          <button onclick="closeMajorGroupModal()" class="px-4 py-2 rounded-xl border border-slate-300 text-xs font-semibold text-slate-700 hover:bg-slate-100">Hủy</button>
+          <button onclick="applyMajorGroupCourses()" class="px-5 py-2 rounded-xl bg-red-900 hover:bg-red-800 text-white text-xs font-semibold shadow transition">Áp dụng vào TKB</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Thêm Môn Học Thủ Công -->
   <div id="addModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs hidden items-center justify-center z-50 p-4">
     <div class="bg-white rounded-2xl max-w-xl w-full shadow-2xl border border-slate-200 overflow-hidden">
       <div class="px-6 py-4 bg-red-900 text-white flex items-center justify-between">
@@ -224,7 +290,7 @@
 
       <div class="p-6 space-y-4">
         <div>
-          <label class="block text-xs font-semibold uppercase text-slate-500 mb-1.5">Nhập mã lớp học phần (VD: BAF716_262_D01, BAF724_262_D02)</label>
+          <label class="block text-xs font-semibold uppercase text-slate-500 mb-1.5">Nhập mã lớp học phần (VD: ENL701_262_D01, GYM304_262_BB_D01)</label>
           <div class="flex gap-2">
             <input type="text" id="courseInput" oninput="previewCourse()" placeholder="Nhập hoặc dán mã lớp học phần..." class="flex-1 border border-slate-300 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-red-800 uppercase" />
             <button onclick="addCourseFromInput()" class="bg-red-900 hover:bg-red-800 text-white font-semibold px-5 py-2.5 rounded-xl text-sm transition">Thêm</button>
@@ -352,15 +418,15 @@
     // ==========================================
     // 1. QUẢN LÝ DỮ LIỆU HỌC PHẦN (EXCEL / JSON)
     // ==========================================
-    const STORAGE_KEY_COURSE_DB = "hub_tkb_courses_db_v2";
-    const STORAGE_KEY_COURSE_META = "hub_tkb_courses_meta_v2";
+    const STORAGE_KEY_COURSE_DB = "hub_tkb_courses_db_v3";
+    const STORAGE_KEY_COURSE_META = "hub_tkb_courses_meta_v3";
     let COURSES_DB = {};
 
     function unpackCompactDb(compactObj) {
       const unpacked = {};
       Object.entries(compactObj || {}).forEach(([code, arr]) => {
         if (Array.isArray(arr)) {
-          const [name, rawSessions, examCa, examDate, examCampus, examPm] = arr;
+          const [name, rawSessions, examCa, examDate, examCampus, examPm, major, group, regType] = arr;
           const examRoom = examPm === "PM"
             ? `Phòng máy - Cơ sở ${examCampus || "TĐ"} (Chưa phân số phòng)`
             : `Cơ sở ${examCampus || "TĐ"} (Chưa phân phòng trên file)`;
@@ -376,7 +442,10 @@
             })),
             examCa: examCa || "",
             examDate: examDate || "",
-            examRoom
+            examRoom,
+            major: major || "",
+            group: group || "",
+            regType: regType || ""
           };
         } else if (arr && typeof arr === "object" && arr.code) {
           unpacked[code.toUpperCase()] = {
@@ -386,7 +455,10 @@
               ...s,
               thu: parseInt(s.thu, 10),
               weeks: Array.isArray(s.weeks) ? s.weeks : parseWeeks(s.tuanRaw)
-            }))
+            })),
+            major: arr.major || "",
+            group: arr.group || "",
+            regType: arr.regType || ""
           };
         }
       });
@@ -446,6 +518,9 @@
         const idxExamDate = headers.findIndex(h => h.startsWith("NGÀY THI"));
         const idxExamCampus = headers.findIndex(h => h === "CƠ SỞ THI");
         const idxExamPm = headers.findIndex(h => h === "(THI CẬP NHẬT)");
+        const idxMajor = headers.findIndex(h => h === "NGÀNH CHUYÊN NGÀNH");
+        const idxGroup = headers.findIndex(h => h === "NHÓM");
+        const idxRegType = headers.findIndex(h => h.toLowerCase().includes("hinh thức đăng ký") || h.toLowerCase().includes("hình thức đăng ký"));
 
         if (idxCode === -1 || idxName === -1) return;
 
@@ -489,13 +564,20 @@
             ? `Phòng máy - Cơ sở ${campus} (Chưa phân số phòng)`
             : `Cơ sở ${campus} (Chưa phân phòng trên file)`;
 
+          const majorVal = idxMajor !== -1 ? String(r[idxMajor] || "").trim() : "";
+          const groupVal = idxGroup !== -1 ? String(r[idxGroup] || "").trim() : "";
+          const regTypeVal = idxRegType !== -1 ? String(r[idxRegType] || "").trim() : "";
+
           parsedMap[code] = {
             code,
             name: String(r[idxName] || "").trim(),
             sessions,
             examCa: idxExamCa !== -1 ? String(r[idxExamCa] || "").trim() : "",
             examDate: idxExamDate !== -1 ? String(r[idxExamDate] || "").trim() : "",
-            examRoom: examRoomText
+            examRoom: examRoomText,
+            major: majorVal || (parsedMap[code]?.major || ""),
+            group: groupVal || (parsedMap[code]?.group || ""),
+            regType: regTypeVal || (parsedMap[code]?.regType || "")
           };
         }
       });
@@ -585,7 +667,198 @@
     }
 
     // ==========================================
-    // 2. HỆ THỐNG TÀI KHOẢN ĐA NGƯỜI DÙNG
+    // 2. CHỌN THỜI KHÓA BIỂU THEO NGÀNH & NHÓM
+    // ==========================================
+    // Kiểm tra một mã nhóm trong Excel (vd: "1", "2", "12", "12345", "1234A") có áp dụng cho nhóm đích (vd: "1") không
+    function isGroupMatched(courseGroupStr, selectedGroup) {
+      const g = String(courseGroupStr || "").trim();
+      const target = String(selectedGroup || "").trim();
+      if (!g || !target) return false;
+      if (g === target) return true;
+      // Nhóm gộp gồm nhiều chữ số (ví dụ "12" áp dụng cho cả nhóm "1" và "2"; "12345" áp dụng cho 1,2,3,4,5)
+      if (/^[0-9A-Za-z]+$/.test(g) && g.length > 1 && g !== "Ảo") {
+        return g.includes(target);
+      }
+      return false;
+    }
+
+    function getGroupCoursesIndex() {
+      // Lọc các lớp thuộc diện "Đăng ký theo nhóm" (hoặc có cột NHÓM cụ thể và không phải chung toàn trường)
+      const byMajor = {};
+      Object.values(COURSES_DB).forEach(c => {
+        const major = String(c.major || "").trim();
+        const group = String(c.group || "").trim();
+        const reg = String(c.regType || "").toLowerCase();
+        if (!major || major.toLowerCase() === "chung" || !group) return;
+        if (reg && !reg.includes("nhóm")) return;
+
+        if (!byMajor[major]) {
+          byMajor[major] = { allCourses: [], specificGroups: new Set() };
+        }
+        byMajor[major].allCourses.push(c);
+
+        // Xác định các nhóm đơn lẻ để hiển thị trong dropdown (VD: "1", "2", "3", "4", "5", "Ảo")
+        if (group === "Ảo" || group.length === 1) {
+          byMajor[major].specificGroups.add(group);
+        } else if (/^[0-9]+$/.test(group)) {
+          group.split("").forEach(ch => byMajor[major].specificGroups.add(ch));
+        } else if (group === "1234A") {
+          ["1", "2", "3", "4"].forEach(ch => byMajor[major].specificGroups.add(ch));
+        }
+      });
+      return byMajor;
+    }
+
+    function openMajorGroupModal() {
+      if (Object.keys(COURSES_DB).length === 0) {
+        alert("Bạn chưa nạp dữ liệu lớp học phần. Vui lòng chọn file Excel (.xlsx) hoặc JSON (.json) trước nhé!");
+        return;
+      }
+      const index = getGroupCoursesIndex();
+      const majors = Object.keys(index).sort((a, b) => a.localeCompare(b, "vi"));
+      if (majors.length === 0) {
+        alert("Dữ liệu hiện tại không có thông tin phân nhóm theo ngành (cột NGÀNH CHUYÊN NGÀNH / NHÓM). Bạn có thể dùng nút '+ Thêm lớp HP' để nhập mã lớp.");
+        return;
+      }
+
+      const activePlan = getActivePlan();
+      document.getElementById("mgModalPlanName").textContent = activePlan.name;
+
+      const majorSel = document.getElementById("mgMajorSelect");
+      majorSel.innerHTML = majors.map(m => `<option value="${m}">${m}</option>`).join("");
+
+      onMajorChange();
+      document.getElementById("majorGroupModal").classList.remove("hidden");
+      document.getElementById("majorGroupModal").classList.add("flex");
+    }
+
+    function closeMajorGroupModal() {
+      document.getElementById("majorGroupModal").classList.add("hidden");
+      document.getElementById("majorGroupModal").classList.remove("flex");
+    }
+
+    function onMajorChange() {
+      const index = getGroupCoursesIndex();
+      const major = document.getElementById("mgMajorSelect").value;
+      const info = index[major];
+      const groupSel = document.getElementById("mgGroupSelect");
+
+      if (!info) {
+        groupSel.innerHTML = "";
+        return;
+      }
+      const groups = Array.from(info.specificGroups).sort((a, b) => a.localeCompare(b, "vi"));
+      groupSel.innerHTML = groups.map(g => `<option value="${g}">Nhóm ${g}</option>`).join("");
+      renderMajorGroupPreview();
+    }
+
+    function renderMajorGroupPreview() {
+      const index = getGroupCoursesIndex();
+      const major = document.getElementById("mgMajorSelect").value;
+      const group = document.getElementById("mgGroupSelect").value;
+      const box = document.getElementById("mgCourseListBox");
+      const info = index[major];
+
+      if (!info) {
+        box.innerHTML = `<p class="text-xs text-slate-400">Không có dữ liệu.</p>`;
+        return;
+      }
+
+      const matched = info.allCourses.filter(c => isGroupMatched(c.group, group));
+      // Đếm số lớp cùng tên môn trong danh sách khớp (để nhận biết các môn nhóm chung mở nhiều lớp song song như ở HTTTKD&CĐS)
+      const nameCount = {};
+      matched.forEach(c => {
+        nameCount[c.name] = (nameCount[c.name] || 0) + 1;
+      });
+      const seenNames = new Set();
+
+      // Sắp xếp: môn riêng của nhóm lên trước, môn nhóm chung (12, 12345...) xuống dưới
+      matched.sort((a, b) => {
+        const aShared = a.group !== group ? 1 : 0;
+        const bShared = b.group !== group ? 1 : 0;
+        if (aShared !== bShared) return aShared - bShared;
+        return a.code.localeCompare(b.code);
+      });
+
+      if (matched.length === 0) {
+        box.innerHTML = `<p class="text-xs text-slate-500 p-2">Không tìm thấy lớp học phần nào cho ${major} - Nhóm ${group}.</p>`;
+        updateMgSelectedCount();
+        return;
+      }
+
+      box.innerHTML = matched.map(c => {
+        const isShared = c.group !== group;
+        const isDuplicateSubject = nameCount[c.name] > 1;
+        // Nếu 1 môn mở nhiều lớp song song cho nhóm chung, chỉ tick sẵn lớp đầu tiên để tránh trùng lịch
+        let defaultChecked = true;
+        if (isDuplicateSubject) {
+          if (seenNames.has(c.name)) defaultChecked = false;
+          else seenNames.add(c.name);
+        }
+
+        const badge = isShared
+          ? `<span class="px-1.5 py-0.5 rounded bg-amber-100 text-amber-900 text-[10px] font-bold">Nhóm chung (${c.group})</span>`
+          : `<span class="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-900 text-[10px] font-bold">Nhóm ${c.group}</span>`;
+
+        const multiHint = isDuplicateSubject
+          ? `<span class="text-[10px] text-blue-700 font-medium">(Mở ${nameCount[c.name]} lớp — chọn 1 lớp)</span>`
+          : "";
+
+        const sessionSummary = c.sessions.map(s => `Thứ ${s.thu} (${s.ca}) • Tuần ${s.tuanRaw} • P.${s.room}`).join(" | ");
+
+        return `
+          <label class="flex items-start gap-2.5 p-2.5 rounded-lg bg-white border border-slate-200 hover:border-red-300 cursor-pointer transition">
+            <input type="checkbox" value="${c.code}" ${defaultChecked ? "checked" : ""} onchange="updateMgSelectedCount()" class="mg-course-checkbox mt-1 rounded text-red-900 focus:ring-red-800" />
+            <div class="flex-1 min-w-0">
+              <div class="flex flex-wrap items-center gap-1.5">
+                <span class="font-mono text-xs font-bold text-red-900">${c.code}</span>
+                ${badge}
+                ${multiHint}
+              </div>
+              <div class="text-xs font-semibold text-slate-800 mt-0.5">${c.name}</div>
+              <div class="text-[11px] text-slate-500 mt-0.5">${sessionSummary}</div>
+            </div>
+          </label>
+        `;
+      }).join("");
+
+      updateMgSelectedCount();
+    }
+
+    function updateMgSelectedCount() {
+      const checked = document.querySelectorAll(".mg-course-checkbox:checked").length;
+      document.getElementById("mgSelectedSummary").textContent = `Đã chọn ${checked} học phần`;
+    }
+
+    function toggleAllMgCourses(state) {
+      document.querySelectorAll(".mg-course-checkbox").forEach(cb => cb.checked = state);
+      updateMgSelectedCount();
+    }
+
+    function applyMajorGroupCourses() {
+      const selectedCodes = Array.from(document.querySelectorAll(".mg-course-checkbox:checked")).map(cb => cb.value);
+      if (selectedCodes.length === 0) {
+        alert("Vui lòng chọn ít nhất 1 học phần để áp dụng vào thời khóa biểu.");
+        return;
+      }
+
+      const mode = document.querySelector('input[name="mgApplyMode"]:checked')?.value || "replace";
+      const activePlan = getActivePlan();
+
+      if (mode === "replace") {
+        activePlan.courses = [...selectedCodes];
+      } else {
+        const merged = new Set([...activePlan.courses, ...selectedCodes]);
+        activePlan.courses = Array.from(merged);
+      }
+
+      savePlansState();
+      renderAll();
+      closeMajorGroupModal();
+    }
+
+    // ==========================================
+    // 3. HỆ THỐNG TÀI KHOẢN ĐA NGƯỜI DÙNG
     // ==========================================
     const STORAGE_KEY_USERS = "hub_tkb_users_v1";
     const STORAGE_KEY_SESSION = "hub_tkb_current_user_v1";
@@ -718,7 +991,6 @@
         users[username] = { username, fullName, passHash, createdAt: Date.now() };
         saveUsersMap(users);
 
-        // Chuyển dữ liệu từ chế độ Khách sang tài khoản mới nếu được chọn
         const migrate = document.getElementById("migrateGuestData").checked;
         if (migrate) {
           const guestRaw = localStorage.getItem("hub_tkb_plans_v1");
@@ -756,7 +1028,7 @@
     }
 
     // ==========================================
-    // 3. QUẢN LÝ ĐA KẾ HOẠCH (A, B, C, D...)
+    // 4. QUẢN LÝ ĐA KẾ HOẠCH (A, B, C, D...)
     // ==========================================
     let appState = null;
 
@@ -901,7 +1173,7 @@
     });
 
     // ==========================================
-    // 4. HIỂN THỊ THỜI KHÓA BIỂU & LỊCH THI
+    // 5. HIỂN THỊ THỜI KHÓA BIỂU & LỊCH THI
     // ==========================================
     function getWeekDates(weekNum) {
       const start = new Date(WEEK1_START);
@@ -1043,10 +1315,13 @@
           });
 
           const cardsHtml = items.map(({ course, session, color }) => `
-            <div class="cell-card border-l-4 rounded-lg p-2.5 mb-2 last:mb-0 text-left shadow-2xs ${color}">
+            <div class="cell-card border-l-4 rounded-lg p-2.5 mb-2 last:mb-0 text-left shadow-2xs relative group ${color}">
               <div class="flex items-center justify-between gap-1">
                 <span class="text-[11px] font-bold tracking-wide">${course.code}</span>
-                <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-white/80">Phòng ${session.room}</span>
+                <div class="flex items-center gap-1">
+                  <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-white/80">Phòng ${session.room}</span>
+                  <button onclick="removeCourse('${course.code}')" title="Xóa môn này khỏi kế hoạch" class="opacity-0 group-hover:opacity-100 transition text-[10px] font-bold px-1.5 py-0.5 rounded bg-red-600 text-white hover:bg-red-700">&times;</button>
+                </div>
               </div>
               <div class="font-semibold text-xs mt-1 leading-snug">${course.name}</div>
               <div class="text-[11px] opacity-80 mt-1">
@@ -1083,7 +1358,7 @@
 
       const examBody = document.getElementById("examTableBody");
       if (sortedExams.length === 0) {
-        examBody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-slate-400">Chưa có môn học nào trong <strong>${activePlan.name}</strong>. Nhấn <strong>"Thêm môn học"</strong> để bắt đầu.</td></tr>`;
+        examBody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-slate-400">Chưa có môn học nào trong <strong>${activePlan.name}</strong>. Nhấn <strong>"Chọn theo Ngành/Nhóm"</strong> hoặc <strong>"Thêm lớp HP"</strong> để bắt đầu.</td></tr>`;
       } else {
         examBody.innerHTML = sortedExams.map(c => `
           <tr class="hover:bg-slate-50">
@@ -1120,15 +1395,22 @@
             </div>
           `).join("");
 
+          const groupTag = c.major && c.group
+            ? `<span class="text-[11px] px-2 py-0.5 rounded bg-slate-100 text-slate-600 font-medium">${c.major} • Nhóm ${c.group}</span>`
+            : "";
+
           return `
             <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm flex flex-col justify-between gap-3">
               <div>
                 <div class="flex items-start justify-between gap-2">
                   <div>
-                    <span class="text-xs font-mono font-bold px-2 py-0.5 rounded bg-red-50 text-red-900">${c.code}</span>
+                    <div class="flex flex-wrap items-center gap-1.5">
+                      <span class="text-xs font-mono font-bold px-2 py-0.5 rounded bg-red-50 text-red-900">${c.code}</span>
+                      ${groupTag}
+                    </div>
                     <h3 class="font-bold text-slate-800 mt-1.5">${c.name}</h3>
                   </div>
-                  <button onclick="removeCourse('${c.code}')" class="text-xs text-slate-400 hover:text-red-600 px-2 py-1 rounded hover:bg-red-50">Xóa</button>
+                  <button onclick="removeCourse('${c.code}')" class="text-xs font-medium text-red-600 hover:text-white px-2.5 py-1 rounded-lg bg-red-50 hover:bg-red-600 transition shrink-0">Xóa môn</button>
                 </div>
                 <div class="mt-3 space-y-1.5">${sessionLines}</div>
               </div>
