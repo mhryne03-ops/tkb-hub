@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kế Hoạch Học Tập & Thời Khóa Biểu HUB - HK2 (2026-2027)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+    .tab-active { border-bottom: 2px solid #991b1b; color: #991b1b; font-weight: 600; }
+    .cell-card { transition: all 0.15s ease; }
+    .cell-card:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+    .plan-pill-active { background-color: #991b1b; color: #ffffff; border-color: #991b1b; box-shadow: 0 2px 6px rgba(153, 27, 27, 0.25); }
+    .plan-pill-inactive { background-color: #ffffff; color: #334155; border-color: #cbd5e1; }
+    .plan-pill-inactive:hover { background-color: #f1f5f9; border-color: #94a3b8; }
+  </style>
+</head>
+<body class="text-slate-800 min-h-screen flex flex-col">
+
+  <!-- Header -->
+  <header class="bg-red-900 text-white shadow-md">
+    <div class="max-w-7xl mx-auto px-4 py-4 flex flex-wrap items-center justify-between gap-4">
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="bg-amber-400 text-red-950 text-xs font-bold px-2 py-0.5 rounded">HUB • HK2 2026–2027</span>
+          <span class="text-red-200 text-xs">Tuần 1: 15/02/2027 – 21/02/2027</span>
+        </div>
+        <h1 class="text-xl md:text-2xl font-bold mt-1">Lập Thời Khóa Biểu & Lịch Thi Dự Kiến</h1>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-2">
+        <button onclick="exportBackup()" class="bg-red-800 hover:bg-red-700 border border-red-600 text-xs font-medium px-3 py-2 rounded-lg flex items-center gap-1.5 transition" title="Tải file sao lưu các phương án A, B, C...">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
+          <span>Xuất file lưu</span>
+        </button>
+        <label class="cursor-pointer bg-red-800 hover:bg-red-700 border border-red-600 text-xs font-medium px-3 py-2 rounded-lg flex items-center gap-1.5 transition" title="Khôi phục từ file sao lưu JSON">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+          <span>Mở file lưu</span>
+          <input type="file" id="jsonImport" accept=".json" class="hidden" />
+        </label>
+        <label class="cursor-pointer bg-red-800 hover:bg-red-700 border border-red-600 text-xs font-medium px-3 py-2 rounded-lg flex items-center gap-1.5 transition" title="Cập nhật dữ liệu từ file Excel mới của trường">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          <span>Cập nhật Excel</span>
+          <input type="file" id="excelUpload" accept=".xlsx,.xls" class="hidden" />
+        </label>
+        <button onclick="openAddModal()" class="bg-amber-400 hover:bg-amber-300 text-red-950 font-semibold text-sm px-4 py-2 rounded-lg shadow flex items-center gap-1.5 transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+          <span>Thêm môn học</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="max-w-7xl w-full mx-auto px-4 py-5 flex-1 space-y-5">
+
+    <!-- MULTI-PLAN SWITCHER BAR (Kế hoạch A, B, C, D...) -->
+    <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm space-y-3">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center gap-2">
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Phương án TKB:</span>
+          <span id="saveIndicator" class="text-[11px] bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full font-medium">✓ Đã lưu tự động</span>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-1.5">
+          <button onclick="createNewPlan()" class="text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-white px-3 py-1.5 rounded-lg transition flex items-center gap-1">
+            <span>+ Thêm kế hoạch mới</span>
+          </button>
+          <button onclick="duplicateCurrentPlan()" class="text-xs font-medium bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 px-2.5 py-1.5 rounded-lg transition" title="Tạo bản sao từ phương án hiện tại để chỉnh sửa thử">
+            Nhân bản phương án này
+          </button>
+          <button onclick="renameCurrentPlan()" class="text-xs font-medium bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 px-2.5 py-1.5 rounded-lg transition">
+            Đổi tên
+          </button>
+          <button onclick="deleteCurrentPlan()" class="text-xs font-medium bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 px-2.5 py-1.5 rounded-lg transition">
+            Xóa kế hoạch
+          </button>
+        </div>
+      </div>
+
+      <!-- Plan Pills Container -->
+      <div id="planTabsContainer" class="flex flex-wrap items-center gap-2 pt-1"></div>
+    </div>
+
+    <!-- Status & View Tabs Bar -->
+    <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0"></div>
+        <div>
+          <p id="dbStatusText" class="text-sm font-medium text-slate-700">Đã tích hợp sẵn 960 lớp học phần từ file Excel V10</p>
+          <p class="text-xs text-slate-500">Đang xem: <strong id="currentPlanTitle" class="text-red-900">Kế hoạch A</strong> • Dữ liệu tự động lưu trên trình duyệt.</p>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <div class="flex items-center gap-6 border-b border-slate-200">
+        <button id="tabBtnTimetable" onclick="switchTab('timetable')" class="pb-2 text-sm tab-active">Thời khóa biểu tuần</button>
+        <button id="tabBtnExams" onclick="switchTab('exams')" class="pb-2 text-sm text-slate-500 hover:text-slate-800">Lịch thi dự kiến (<span id="examCount">0</span>)</button>
+        <button id="tabBtnCourses" onclick="switchTab('courses')" class="pb-2 text-sm text-slate-500 hover:text-slate-800">Môn đã chọn (<span id="courseCount">0</span>)</button>
+      </div>
+    </div>
+
+    <!-- Conflict Alert Banner -->
+    <div id="conflictBanner" class="hidden bg-red-50 border border-red-300 text-red-800 rounded-xl p-4 text-sm">
+      <div class="font-bold flex items-center gap-2 mb-1">
+        <span>⚠️ Cảnh báo trùng lịch trong <span id="conflictPlanName"></span>:</span>
+      </div>
+      <ul id="conflictList" class="list-disc list-inside space-y-1 text-xs"></ul>
+    </div>
+
+    <!-- TAB 1: TIMETABLE -->
+    <section id="viewTimetable" class="space-y-4">
+      <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm flex flex-wrap items-center justify-between gap-4">
+        <div class="flex items-center gap-2">
+          <button onclick="changeWeek(-1)" class="p-2 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-600" title="Tuần trước">◀</button>
+          <select id="weekSelector" onchange="renderAll()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm font-semibold text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-red-800"></select>
+          <button onclick="changeWeek(1)" class="p-2 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-600" title="Tuần sau">▶</button>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-3 text-xs text-slate-600">
+          <span class="px-2.5 py-1 rounded bg-slate-100"><strong>Ca S:</strong> 7h00 – 11h05 (Tiết 1–5)</span>
+          <span class="px-2.5 py-1 rounded bg-slate-100"><strong>Ca C:</strong> 13h00 – 17h05 (Tiết 6–10)</span>
+          <button onclick="clearCurrentPlanCourses()" class="text-red-600 hover:underline font-medium ml-2">Làm trống kế hoạch này</button>
+        </div>
+      </div>
+
+      <!-- Weekly Grid -->
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-x-auto">
+        <table class="w-full min-w-[900px] border-collapse text-sm">
+          <thead>
+            <tr class="bg-slate-100 text-slate-700 border-b border-slate-200">
+              <th class="w-28 p-3 text-left font-semibold border-r border-slate-200">Buổi / Ca</th>
+              <th id="th-2" class="p-3 text-center font-semibold border-r border-slate-200">Thứ 2</th>
+              <th id="th-3" class="p-3 text-center font-semibold border-r border-slate-200">Thứ 3</th>
+              <th id="th-4" class="p-3 text-center font-semibold border-r border-slate-200">Thứ 4</th>
+              <th id="th-5" class="p-3 text-center font-semibold border-r border-slate-200">Thứ 5</th>
+              <th id="th-6" class="p-3 text-center font-semibold border-r border-slate-200">Thứ 6</th>
+              <th id="th-7" class="p-3 text-center font-semibold">Thứ 7</th>
+            </tr>
+          </thead>
+          <tbody id="timetableBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- TAB 2: EXAMS -->
+    <section id="viewExams" class="hidden">
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="p-4 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2">
+          <h2 class="font-bold text-slate-800">Lịch Thi Dự Kiến — <span id="examPlanTitle" class="text-red-900"></span></h2>
+          <span class="text-xs text-slate-500">Giờ thi: Ca 1 (7g00) • Ca 2 (9g30) • Ca 3 (13g00) • Ca 4 (15g30) • Ca 5 (18g00)</span>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm text-left">
+            <thead class="bg-slate-50 text-slate-600 border-b border-slate-200 text-xs uppercase">
+              <tr>
+                <th class="p-3.5">Ngày thi</th>
+                <th class="p-3.5">Ca thi & Giờ thi</th>
+                <th class="p-3.5">Mã học phần</th>
+                <th class="p-3.5">Tên học phần</th>
+                <th class="p-3.5">Phòng thi / Cơ sở</th>
+              </tr>
+            </thead>
+            <tbody id="examTableBody" class="divide-y divide-slate-200"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: SELECTED COURSES -->
+    <section id="viewCourses" class="hidden space-y-4">
+      <div id="selectedCoursesGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+    </section>
+
+  </main>
+
+  <!-- Modal Thêm Môn Học -->
+  <div id="addModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs hidden items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-2xl max-w-xl w-full shadow-2xl border border-slate-200 overflow-hidden">
+      <div class="px-6 py-4 bg-red-900 text-white flex items-center justify-between">
+        <div>
+          <h3 class="font-bold text-lg">Thêm Môn Học Bằng Mã Học Phần</h3>
+          <p class="text-xs text-red-200">Đang thêm vào: <strong id="modalPlanName"></strong></p>
+        </div>
+        <button onclick="closeAddModal()" class="text-red-200 hover:text-white text-xl leading-none">&times;</button>
+      </div>
+
+      <div class="p-6 space-y-4">
+        <div>
+          <label class="block text-xs font-semibold uppercase text-slate-500 mb-1.5">Nhập mã lớp học phần (VD: BAF716_262_D01, BAF724_262_D02)</label>
+          <div class="flex gap-2">
+            <input type="text" id="courseInput" oninput="previewCourse()" placeholder="Nhập hoặc dán mã lớp học phần..." class="flex-1 border border-slate-300 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-red-800 uppercase" />
+            <button onclick="addCourseFromInput()" class="bg-red-900 hover:bg-red-800 text-white font-semibold px-5 py-2.5 rounded-xl text-sm transition">Thêm</button>
+          </div>
+          <p class="text-xs text-slate-400 mt-1.5">Mẹo: Có thể dán cùng lúc nhiều mã học phần cách nhau bằng dấu phẩy hoặc dấu cách.</p>
+        </div>
+
+        <!-- Live Preview Box -->
+        <div id="previewBox" class="hidden max-h-64 overflow-y-auto rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-2.5 text-sm"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Dữ liệu 960 lớp học phần được nhúng sẵn từ file Excel V10
+    const RAW_COMPACT_DB = {"GYM302_262_BC_D01":["Học phần GDTC 2 (bóng chuyển hơi)",[["1-3",2,"2-4","Sân bóng chuyền"],["4-5",2,"5-7","Sân bóng chuyền"]],"Ca 1","05/04/2027","TĐ",""],"GYM302_262_BC_D02":["Học phần GDTC 2 (bóng chuyển hơi)",[["4-5",2,"2-4","Sân bóng chuyền"],["1-3",2,"5-7","Sân bóng chuyền"]],"Ca 1","05/04/2027","TĐ",""],"GYM302_262_BC_D03":["Học phần GDTC 2 (bóng chuyển hơi)",[["6-8",2,"2-4","Sân bóng chuyền"],["9-10",2,"5-7","Sân bóng chuyền"]],"Ca 3","05/04/2027","TĐ",""],"GYM302_262_BC_D04":["Học phần GDTC 2 (bóng chuyển hơi)",[["9-10",2,"2-4","Sân bóng chuyền"],["6-8",2,"5-7","Sân bóng chuyền"]],"Ca 3","05/04/2027","TĐ",""],"GYM302_262_BC_D05":["Học phần GDTC 2 (bóng chuyển hơi)",[["1-3",3,"2-4","Sân bóng chuyền"],["4-5",3,"5-7","Sân bóng chuyền"]],"Ca 1","06/04/2027","TĐ",""],"GYM302_262_BC_D06":["Học phần GDTC 2 (bóng chuyển hơi)",[["4-5",3,"2-4","Sân bóng chuyền"],["1-3",3,"5-7","Sân bóng chuyền"]],"Ca 1","06/04/2027","TĐ",""],"GYM302_262_BC_D07":["Học phần GDTC 2 (bóng chuyển hơi)",[["6-8",3,"2-4","Sân bóng chuyền"],["9-10",3,"5-7","Sân bóng chuyền"]],"Ca 3","06/04/2027","TĐ",""],"GYM302_262_BC_D08":["Học phần GDTC 2 (bóng chuyển hơi)",[["9-10",3,"2-4","Sân bóng chuyền"],["6-8",3,"5-7","Sân bóng chuyền"]],"Ca 3","06/04/2027","TĐ",""],"GYM302_262_CL_D09":["Học phần GDTC 2 (cầu lông)",[["1-3",4,"2-4","Sân Cầu lông"],["4-5",4,"5-7","Sân Cầu lông"]],"Ca 1","07/04/2027","TĐ",""],"GYM302_262_CL_D10":["Học phần GDTC 2 (cầu lông)",[["4-5",4,"2-4","Sân Cầu lông"],["1-3",4,"5-7","Sân Cầu lông"]],"Ca 1","07/04/2027","TĐ",""],"GYM302_262_CL_D11":["Học phần GDTC 2 (cầu lông)",[["6-8",4,"2-4","Sân Cầu lông"],["9-10",4,"5-7","Sân Cầu lông"]],"Ca 3","07/04/2027","TĐ",""],"GYM302_262_CL_D12":["Học phần GDTC 2 (cầu lông)",[["9-10",4,"2-4","Sân Cầu lông"],["6-8",4,"5-7","Sân Cầu lông"]],"Ca 3","07/04/2027","TĐ",""],"GYM302_262_CL_D13":["Học phần GDTC 2 (cầu lông)",[["1-3",5,"2-4","Sân Cầu lông"],["4-5",5,"5-7","Sân Cầu lông"]],"Ca 1","08/04/2027","TĐ",""],"GYM302_262_CL_D14":["Học phần GDTC 2 (cầu lông)",[["4-5",5,"2-4","Sân Cầu lông"],["1-3",5,"5-7","Sân Cầu lông"]],"Ca 1","08/04/2027","TĐ",""],"GYM302_262_PI_D15":["Học phần GDTC 2 (pickleball)",[["6-8",5,"2-4","Sân Pickleball"],["9-10",5,"5-7","Sân Pickleball"]],"Ca 3","08/04/2027","TĐ",""],"GYM302_262_PI_D16":["Học phần GDTC 2 (pickleball)",[["9-10",5,"2-4","Sân Pickleball"],["6-8",5,"5-7","Sân Pickleball"]],"Ca 3","08/04/2027","TĐ",""],"GYM302_262_PI_D17":["Học phần GDTC 2 (pickleball)",[["4-5",6,"2-4","Sân Pickleball"],["3-5",6,"5-7","Sân Pickleball"]],"Ca 1","09/04/2027","TĐ",""],"GYM302_262_PI_D18":["Học phần GDTC 2 (pickleball)",[["4-5",6,"2-4","Sân Pickleball"],["3-5",6,"5-7","Sân Pickleball"]],"Ca 1","09/04/2027","TĐ",""],"GYM302_262_PI_D19":["Học phần GDTC 2 (pickleball)",[["6-8",6,"2-4","Sân Pickleball"],["9-10",6,"5-7","Sân Pickleball"]],"Ca 3","09/04/2027","TĐ",""],"GYM302_262_PI_D20":["Học phần GDTC 2 (pickleball)",[["9-10",6,"2-4","Sân Pickleball"],["6-8",6,"5-7","Sân Pickleball"]],"Ca 3","09/04/2027","TĐ",""],"GYM302_262_PI_D21":["Học phần GDTC 2 (pickleball)",[["1-3",7,"3-5","Sân Pickleball"],["4-5",7,"6-8","Sân Pickleball"]],"Ca 1","19/04/2027","TĐ",""],"GYM302_262_PI_D22":["Học phần GDTC 2 (pickleball)",[["4-5",7,"3-5","Sân Pickleball"],["1-3",7,"6-8","Sân Pickleball"]],"Ca 1","19/04/2027","TĐ",""],"GYM302_262_PI_D23":["Học phần GDTC 2 (pickleball)",[["6-8",7,"3-5","Sân Pickleball"],["9-10",7,"6-8","Sân Pickleball"]],"Ca 3","19/04/2027","TĐ",""],"GYM302_262_PI_D24":["Học phần GDTC 2 (pickleball)",[["9-10",7,"3-5","Sân Pickleball"],["6-8",7,"6-8","Sân Pickleball"]],"Ca 3","19/04/2027","TĐ",""],"GYM302_262_PI_D25":["Học phần GDTC 2 (pickleball)",[["1-3",2,"2-4","Sân Pickleball"],["4-5",2,"5-7","Sân Pickleball"]],"Ca 1","05/04/2027","TĐ",""],"GYM302_262_PI_D26":["Học phần GDTC 2 (pickleball)",[["4-5",2,"2-4","Sân Pickleball"],["1-3",2,"5-7","Sân Pickleball"]],"Ca 1","05/04/2027","TĐ",""],"GYM302_262_PI_D27":["Học phần GDTC 2 (pickleball)",[["6-8",2,"2-4","Sân Pickleball"],["9-10",2,"5-7","Sân Pickleball"]],"Ca 3","05/04/2027","TĐ",""],"GYM302_262_PI_D28":["Học phần GDTC 2 (pickleball)",[["9-10",2,"2-4","Sân Pickleball"],["6-8",2,"5-7","Sân Pickleball"]],"Ca 3","05/04/2027","TĐ",""],"GYM302_262_BC_D29":["Học phần GDTC 2 (bóng chuyển hơi)",[["1-3",2,"13-15","Sân bóng chuyền"],["4-5",2,"16-18","Sân bóng chuyền"]],"Ca 1","21/06/2027","TĐ",""],"GYM302_262_BC_D30":["Học phần GDTC 2 (bóng chuyển hơi)",[["4-5",2,"13-15","Sân bóng chuyền"],["1-3",2,"16-18","Sân bóng chuyền"]],"Ca 1","21/06/2027","TĐ",""],"GYM302_262_BC_D31":["Học phần GDTC 2 (bóng chuyển hơi)",[["6-8",2,"13-15","Sân bóng chuyền"],["9-10",2,"16-18","Sân bóng chuyền"]],"Ca 3","21/06/2027","TĐ",""],"GYM302_262_BC_D32":["Học phần GDTC 2 (bóng chuyển hơi)",[["9-10",2,"13-15","Sân bóng chuyền"],["6-8",2,"16-18","Sân bóng chuyền"]],"Ca 3","21/06/2027","TĐ",""],"GYM302_262_BC_D33":["Học phần GDTC 2 (bóng chuyển hơi)",[["1-3",3,"12-14","Sân bóng chuyền"],["4-5",3,"15-17","Sân bóng chuyền"]],"Ca 1","15/06/2027","TĐ",""],"GYM302_262_BC_D34":["Học phần GDTC 2 (bóng chuyển hơi)",[["4-5",3,"12-14","Sân bóng chuyền"],["1-3",3,"15-17","Sân bóng chuyền"]],"Ca 1","15/06/2027","TĐ",""],"GYM302_262_BC_D35":["Học phần GDTC 2 (bóng chuyển hơi)",[["6-8",3,"12-14","Sân bóng chuyền"],["9-10",3,"15-17","Sân bóng chuyền"]],"Ca 3","15/06/2027","TĐ",""],"GYM302_262_BC_D36":["Học phần GDTC 2 (bóng chuyển hơi)",[["9-10",3,"12-14","Sân bóng chuyền"],["6-8",3,"15-17","Sân bóng chuyền"]],"Ca 3","15/06/2027","TĐ",""],"GYM302_262_CL_D37":["Học phần GDTC 2 (cầu lông)",[["1-3",4,"12-14","Sân Cầu lông"],["4-5",4,"15-17","Sân Cầu lông"]],"Ca 1","16/06/2027","TĐ",""],"GYM302_262_CL_D38":["Học phần GDTC 2 (cầu lông)",[["4-5",4,"12-14","Sân Cầu lông"],["1-3",4,"15-17","Sân Cầu lông"]],"Ca 1","16/06/2027","TĐ",""],"GYM302_262_CL_D39":["Học phần GDTC 2 (cầu lông)",[["6-8",4,"12-14","Sân Cầu lông"],["9-10",4,"15-17","Sân Cầu lông"]],"Ca 3","16/06/2027","TĐ",""],"GYM302_262_CL_D40":["Học phần GDTC 2 (cầu lông)",[["9-10",4,"12-14","Sân Cầu lông"],["6-8",4,"15-17","Sân Cầu lông"]],"Ca 3","16/06/2027","TĐ",""],"GYM302_262_CL_D41":["Học phần GDTC 2 (cầu lông)",[["1-3",5,"12-14","Sân Cầu lông"],["4-5",5,"15-17","Sân Cầu lông"]],"Ca 1","17/06/2027","TĐ",""],"GYM302_262_CL_D42":["Học phần GDTC 2 (cầu lông)",[["4-5",5,"12-14","Sân Cầu lông"],["1-3",5,"15-17","Sân Cầu lông"]],"Ca 1","17/06/2027","TĐ",""],"GYM302_262_PI_D43":["Học phần GDTC 2 (pickleball)",[["6-8",5,"12-14","Sân Pickleball"],["9-10",5,"15-17","Sân Pickleball"]],"Ca 3","17/06/2027","TĐ",""],"GYM302_262_PI_D44":["Học phần GDTC 2 (pickleball)",[["9-10",5,"12-14","Sân Pickleball"],["6-8",5,"15-17","Sân Pickleball"]],"Ca 3","17/06/2027","TĐ",""],"GYM302_262_PI_D45":["Học phần GDTC 2 (pickleball)",[["1-3",6,"12-14","Sân Pickleball"],["4-5",6,"15-17","Sân Pickleball"]],"Ca 1","18/06/2027","TĐ",""],"GYM302_262_PI_D46":["Học phần GDTC 2 (pickleball)",[["4-5",6,"12-14","Sân Pickleball"],["1-3",6,"15-17","Sân Pickleball"]],"Ca 1","18/06/2027","TĐ",""],"GYM302_262_PI_D47":["Học phần GDTC 2 (pickleball)",[["6-8",6,"12-14","Sân Pickleball"],["9-10",6,"15-17","Sân Pickleball"]],"Ca 3","18/06/2027","TĐ",""],"GYM302_262_PI_D48":["Học phần GDTC 2 (pickleball)",[["9-10",6,"12-14","Sân Pickleball"],["6-8",6,"15-17","Sân Pickleball"]],"Ca 3","18/06/2027","TĐ",""],"GYM302_262_PI_D49":["Học phần GDTC 2 (pickleball)",[["1-3",7,"12-14","Sân Pickleball"],["4-5",7,"15, 17-18","Sân Pickleball"]],"Ca 1","26/06/2027","TĐ",""],"GYM302_262_PI_D50":["Học phần GDTC 2 (pickleball)",[["4-5",7,"12-14","Sân Pickleball"],["1-3",7,"13-15","Sân Pickleball"]],"Ca 1","26/06/2027","TĐ",""],"GYM302_262_PI_D51":["Học phần GDTC 2 (pickleball)",[["6-8",7,"12-14","Sân Pickleball"],["9-10",7,"13-15","Sân Pickleball"]],"Ca 3","26/06/2027","TĐ",""],"GYM302_262_PI_D52":["Học phần GDTC 2 (pickleball)",[["9-10",7,"12-14","Sân Pickleball"],["6-8",7,"13-15","Sân Pickleball"]],"Ca 3","26/06/2027","TĐ",""],"GYM302_262_PI_D53":["Học phần GDTC 2 (pickleball)",[["1-3",2,"13-15","Sân Pickleball"],["4-5",2,"16-18","Sân Pickleball"]],"Ca 1","21/06/2027","TĐ",""],"GYM302_262_PI_D54":["Học phần GDTC 2 (pickleball)",[["4-5",2,"13-15","Sân Pickleball"],["1-3",2,"16-18","Sân Pickleball"]],"Ca 1","21/06/2027","TĐ",""],"GYM304_262_BB_D01":["Học phần GDTC 4 (bòng bàn)",[["1-3",3,"2-4","Nhà tập BB"],["4-5",3,"5-7","Nhà tập BB"]],"Ca 1","06/04/2027","TĐ",""],"GYM304_262_BB_D02":["Học phần GDTC 4 (bòng bàn)",[["4-5",3,"2-4","Nhà tập BB"],["1-3",3,"5-7","Nhà tập BB"]],"Ca 1","06/04/2027","TĐ",""],"GYM304_262_BB_D03":["Học phần GDTC 4 (bòng bàn)",[["6-8",3,"2-4","Nhà tập BB"],["9-10",3,"5-7","Nhà tập BB"]],"Ca 3","06/04/2027","TĐ",""],"GYM304_262_BB_D04":["Học phần GDTC 4 (bòng bàn)",[["9-10",3,"2-4","Nhà tập BB"],["6-8",3,"5-7","Nhà tập BB"]],"Ca 3","06/04/2027","TĐ",""],"GYM304_262_BC_D05":["Học phần GDTC 4 (bóng chuyền)",[["1-3",4,"2-4","Sân bóng chuyền"],["4-5",4,"5-7","Sân bóng chuyền"]],"Ca 1","07/04/2027","TĐ",""],"GYM304_262_BC_D06":["Học phần GDTC 4 (bóng chuyền)",[["4-5",4,"2-4","Sân bóng chuyền"],["1-3",4,"5-7","Sân bóng chuyền"]],"Ca 1","07/04/2027","TĐ",""],"GYM304_262_BC_D07":["Học phần GDTC 4 (bóng chuyền)",[["6-8",4,"2-4","Sân bóng chuyền"],["9-10",4,"5-7","Sân bóng chuyền"]],"Ca 3","07/04/2027","TĐ",""],"GYM304_262_BC_D08":["Học phần GDTC 4 (bóng chuyền)",[["9-10",4,"2-4","Sân bóng chuyền"],["6-8",4,"5-7","Sân bóng chuyền"]],"Ca 3","07/04/2027","TĐ",""],"GYM304_262_CL_D09":["Học phần GDTC 4 (cầu lông)",[["1-3",5,"2-4","Sân Cầu lông"],["4-5",5,"5-7","Sân Cầu lông"]],"Ca 1","08/04/2027","TĐ",""],"GYM304_262_CL_D10":["Học phần GDTC 4 (cầu lông)",[["4-5",5,"2-4","Sân Cầu lông"],["1-3",5,"5-7","Sân Cầu lông"]],"Ca 1","08/04/2027","TĐ",""],"GYM304_262_CL_D11":["Học phần GDTC 4 (cầu lông)",[["6-8",5,"2-4","Sân Cầu lông"],["9-10",5,"5-7","Sân Cầu lông"]],"Ca 3","08/04/2027","TĐ",""],"GYM304_262_CL_D12":["Học phần GDTC 4 (cầu lông)",[["9-10",5,"2-4","Sân Cầu lông"],["6-8",5,"5-7","Sân Cầu lông"]],"Ca 3","08/04/2027","TĐ",""],"GYM304_262_CL_D13":["Học phần GDTC 4 (cầu lông)",[["1-3",6,"2-4","Sân Cầu lông"],["4-5",6,"5-7","Sân Cầu lông"]],"Ca 1","09/04/2027","TĐ",""],"GYM304_262_CL_D14":["Học phần GDTC 4 (cầu lông)",[["4-5",6,"2-4","Sân Cầu lông"],["1-3",6,"5-7","Sân Cầu lông"]],"Ca 1","09/04/2027","TĐ",""],"GYM304_262_KR_D15":["Học phần GDTC 4 (karate)",[["6-8",6,"2-4","GĐ C"],["9-10",6,"5-7","GĐ C"]],"Ca 3","09/04/2027","TĐ",""],"GYM304_262_KR_D16":["Học phần GDTC 4 (karate)",[["9-10",6,"2-4","GĐ C"],["6-8",6,"5-7","GĐ C"]],"Ca 3","09/04/2027","TĐ",""],"GYM304_262_PI_D17":["Học phần GDTC 4 (pickleball)",[["1-3",7,"3-5","Sân Pickleball"],["4-5",7,"6-8","Sân Pickleball"]],"Ca 1","19/04/2027","TĐ",""],"GYM304_262_PI_D18":["Học phần GDTC 4 (pickleball)",[["4-5",7,"3-5","Sân Pickleball"],["1-3",7,"6-8","Sân Pickleball"]],"Ca 1","19/04/2027","TĐ",""],"GYM304_262_PI_D19":["Học phần GDTC 4 (pickleball)",[["6-8",7,"3-5","Sân Pickleball"],["9-10",7,"6-8","Sân Pickleball"]],"Ca 3","19/04/2027","TĐ",""],"GYM304_262_PI_D20":["Học phần GDTC 4 (pickleball)",[["9-10",7,"3-5","Sân Pickleball"],["6-8",7,"6-8","Sân Pickleball"]],"Ca 3","19/04/2027","TĐ",""],"GYM304_262_PI_D21":["Học phần GDTC 4 (pickleball)",[["1-3",2,"2-4","Sân Pickleball"],["4-5",2,"5-7","Sân Pickleball"]],"Ca 1","05/04/2027","TĐ",""],"GYM304_262_PI_D22":["Học phần GDTC 4 (pickleball)",[["4-5",2,"2-4","Sân Pickleball"],["1-3",2,"5-7","Sân Pickleball"]],"Ca 1","05/04/2027","TĐ",""],"GYM304_262_PI_D23":["Học phần GDTC 4 (pickleball)",[["6-8",2,"2-4","Sân Pickleball"],["9-10",2,"5-7","Sân Pickleball"]],"Ca 3","05/04/2027","TĐ",""],"GYM304_262_PI_D24":["Học phần GDTC 4 (pickleball)",[["9-10",2,"2-4","Sân Pickleball"],["6-8",2,"5-7","Sân Pickleball"]],"Ca 3","05/04/2027","TĐ",""],"GYM304_262_PI_D25":["Học phần GDTC 4 (pickleball)",[["6-8",3,"2-4","Sân Pickleball"],["9-10",3,"5-7","Sân Pickleball"]],"Ca 3","06/04/2027","TĐ",""],"GYM304_262_PI_D26":["Học phần GDTC 4 (pickleball)",[["9-10",3,"2-4","Sân Pickleball"],["6-8",3,"5-7","Sân Pickleball"]],"Ca 3","06/04/2027","TĐ",""],"GYM304_262_QV_D27":["Học phần GDTC 4 (tenis)",[["1-3",6,"2-4","Sân Quần vợt"],["1-2",6,"5-7","Sân Quần vợt"]],"Ca 1","09/04/2027","TĐ",""],"GYM304_262_QV_D28":["Học phần GDTC 4 (tenis)",[["1-3",6,"2-4","Sân Quần vợt"],["1-2",6,"5-7","Sân Quần vợt"]],"Ca 1","09/04/2027","TĐ",""],"GYM304_262_BB_D29":["Học phần GDTC 4 (bòng bàn)",[["6-8",2,"13-15","Nhà tập BB"],["9-10",2,"16-18","Nhà tập BB"]],"Ca 3","21/06/2027","TĐ",""],"GYM304_262_BB_D30":["Học phần GDTC 4 (bòng bàn)",[["9-10",2,"13-15","Nhà tập BB"],["6-8",2,"16-18","Nhà tập BB"]],"Ca 3","21/06/2027","TĐ",""],"GYM304_262_BC_D31":["Học phần GDTC 4 (bóng chuyền)",[["1-3",3,"12-14","Sân bóng chuyền"],["4-5",3,"15-17","Sân bóng chuyền"]],"Ca 1","15/06/2027","TĐ",""],"GYM304_262_BC_D32":["Học phần GDTC 4 (bóng chuyền)",[["4-5",3,"12-14","Sân bóng chuyền"],["1-3",3,"15-17","Sân bóng chuyền"]],"Ca 1","15/06/2027","TĐ",""],"GYM304_262_BC_D33":["Học phần GDTC 4 (bóng chuyền)",[["6-8",3,"12-14","Sân bóng chuyền"],["9-10",3,"15-17","Sân bóng chuyền"]],"Ca 3","15/06/2027","TĐ",""],"GYM304_262_BC_D34":["Học phần GDTC 4 (bóng chuyền)",[["9-10",3,"12-14","Sân bóng chuyền"],["6-8",3,"15-17","Sân bóng chuyền"]],"Ca 3","15/06/2027","TĐ",""],"GYM304_262_CL_D35":["Học phần GDTC 4 (cầu lông)",[["1-3",4,"12-14","Sân Cầu lông"],["4-5",4,"15-17","Sân Cầu lông"]],"Ca 1","16/06/2027","TĐ",""],"GYM304_262_CL_D36":["Học phần GDTC 4 (cầu lông)",[["4-5",4,"12-14","Sân Cầu lông"],["1-3",4,"15-17","Sân Cầu lông"]],"Ca 1","16/06/2027","TĐ",""],"GYM304_262_CL_D37":["Học phần GDTC 4 (cầu lông)",[["6-8",4,"12-14","Sân Cầu lông"],["9-10",4,"15-17","Sân Cầu lông"]],"Ca 3","16/06/2027","TĐ",""],"GYM304_262_CL_D38":["Học phần GDTC 4 (cầu lông)",[["9-10",4,"12-14","Sân Cầu lông"],["6-8",4,"15-17","Sân Cầu lông"]],"Ca 3","16/06/2027","TĐ",""],"GYM304_262_CL_D39":["Học phần GDTC 4 (cầu lông)",[["1-3",5,"12-14","Sân Cầu lông"],["4-5",5,"15-17","Sân Cầu lông"]],"Ca 1","17/06/2027","TĐ",""],"GYM304_262_CL_D40":["Học phần GDTC 4 (cầu lông)",[["4-5",5,"12-14","Sân Cầu lông"],["1-3",5,"15-17","Sân Cầu lông"]],"Ca 1","17/06/2027","TĐ",""],"GYM304_262_KR_D41":["Học phần GDTC 4 (karate)",[["6-8",5,"12-14","GĐ C"],["9-10",5,"15-17","GĐ C"]],"Ca 3","17/06/2027","TĐ",""],"GYM304_262_KR_D42":["Học phần GDTC 4 (karate)",[["9-10",5,"12-14","GĐ C"],["6-8",5,"15-17","GĐ C"]],"Ca 3","17/06/2027","TĐ",""],"GYM304_262_PI_D43":["Học phần GDTC 4 (pickleball)",[["1-3",6,"12-14","Sân Pickleball"],["4-5",6,"15-17","Sân Pickleball"]],"Ca 1","18/06/2027","TĐ",""],"GYM304_262_PI_D44":["Học phần GDTC 4 (pickleball)",[["4-5",6,"12-14","Sân Pickleball"],["1-3",6,"15-17","Sân Pickleball"]],"Ca 1","18/06/2027","TĐ",""],"GYM304_262_PI_D45":["Học phần GDTC 4 (pickleball)",[["6-8",6,"12-14","Sân Pickleball"],["9-10",6,"15-17","Sân Pickleball"]],"Ca 3","18/06/2027","TĐ",""],"GYM304_262_PI_D46":["Học phần GDTC 4 (pickleball)",[["9-10",6,"12-14","Sân Pickleball"],["6-8",6,"15-17","Sân Pickleball"]],"Ca 3","18/06/2027","TĐ",""],"GYM304_262_PI_D47":["Học phần GDTC 4 (pickleball)",[["1-3",6,"12-14","Sân Pickleball"],["4-5",6,"15-17","Sân Pickleball"]],"Ca 1","18/06/2027","TĐ",""],"GYM304_262_PI_D48":["Học phần GDTC 4 (pickleball)",[["1-3",7,"12-14","Sân Pickleball"],["4-5",7,"13-15","Sân Pickleball"]],"Ca 1","26/06/2027","TĐ",""],"GYM304_262_PI_D49":["Học phần GDTC 4 (pickleball)",[["4-5",7,"12-14","Sân Pickleball"],["1-3",7,"13-15","Sân Pickleball"]],"Ca 1","26/06/2027","TĐ",""],"GYM304_262_PI_D50":["Học phần GDTC 4 (pickleball)",[["6-8",7,"12-14","Sân Pickleball"],["9-10",7,"13-15","Sân Pickleball"]],"Ca 3","26/06/2027","TĐ",""],"GYM304_262_PI_D51":["Học phần GDTC 4 (pickleball)",[["9-10",7,"12-14","Sân Pickleball"],["6-8",7,"13-15","Sân Pickleball"]],"Ca 3","26/06/2027","TĐ",""],"GYM304_262_PI_D52":["Học phần GDTC 4 (pickleball)",[["4-5",2,"13-15","Sân Pickleball"],["3-5",2,"16-18","Sân Pickleball"]],"Ca 1","21/06/2027","TĐ",""],"GYM304_262_PI_D53":["Học phần GDTC 4 (pickleball)",[["4-5",2,"13-15","Sân Pickleball"],["3-5",2,"16-18","Sân Pickleball"]],"Ca 1","21/06/2027","TĐ",""],"GYM304_262_QV_D54":["Học phần GDTC 4 (tenis)",[["1-3",2,"13-15","Sân Quần vợt"],["1-2",2,"16-18","Sân Quần vợt"]],"Ca 1","21/06/2027","TĐ",""],"GYM304_262_QV_D55":["Học phần GDTC 4 (tenis)",[["1-3",2,"13-15","Sân Quần vợt"],["1-2",2,"16-18","Sân Quần vợt"]],"Ca 1","21/06/2027","TĐ",""],"ITS307_262_D01":["An toàn bảo mật thông tin",[["S",2,"1-9","C205"]],"Ca S3","28/04/2027","TĐ","PM"],"ITS307_262_D02":["An toàn bảo mật thông tin",[["C",2,"1-9","C305"]],"Ca S3","28/04/2027","TĐ","PM"],"ITS307_262_D03":["An toàn bảo mật thông tin",[["S",3,"1-9","C201"]],"Ca S3","28/04/2027","TĐ","PM"],"ITS307_262_D04":["An toàn bảo mật thông tin",[["C",3,"1-9","C305"]],"Ca S3","28/04/2027","TĐ","PM"],"ITS307_262_D05":["An toàn bảo mật thông tin",[["S",4,"1-9","C301"]],"Ca S3","28/04/2027","TĐ","PM"],"DAT730_262_D01":["An toàn thông tin trong kinh doanh",[["S",2,"1-9","B1.402"]],"Ca 3","23/04/2027","TĐ",""],"ITS756_262_D01":["Bảo mật thương mại điện tử",[["S",5,"12-17","B1.406"]],"Ca 1","14/07/2027","TĐ",""],"DAT725_262_D01":["Cấu trúc dữ liệu và thuật toán cho khoa học dữ liệu",[["S",2,"13-21","B1.203"]],"Ca 3","15/07/2027","TĐ",""],"DAT725_262_D02":["Cấu trúc dữ liệu và thuật toán cho khoa học dữ liệu",[["C",2,"13-21","B1.406"]],"Ca 3","15/07/2027","TĐ",""],"ITS758_262_D01":["Chiến lược kinh doanh điện tử",[["S",3,"12-20","B1.203"]],"Ca 3","12/07/2027","TĐ",""],"ITS701_262_D01":["Chuyển đổi kinh doanh số",[["S",3,"1-9","B1.303"]],"Ca 4","27/04/2027","TĐ",""],"ITS701_262_D02":["Chuyển đổi kinh doanh số",[["C",3,"1-9","A308"]],"Ca 4","27/04/2027","TĐ",""],"ITS302_262_D01":["Cơ sở dữ liệu",[["C",4,"1-5","C301"],["C",5,"1-4","C305"]],"Ca S2","27/04/2027","TĐ","PM"],"ITS302_262_D02":["Cơ sở dữ liệu",[["S",2,"13-21","C203"]],"Ca S3","16/07/2027","TĐ","PM"],"ITS302_262_D03":["Cơ sở dữ liệu",[["C",2,"13-16,21","C205"],["C",3,"13-16","C301"]],"Ca S3","16/07/2027","TĐ","PM"],"ITS302_262_D04":["Cơ sở dữ liệu",[["S",3,"12-16","C301"],["S",5,"13-16","C301"]],"Ca S3","16/07/2027","TĐ","PM"],"ITS302_262_D05":["Cơ sở dữ liệu",[["S",5,"12-20","C205"]],"Ca S3","16/07/2027","TĐ","PM"],"ITS302_262_D06":["Cơ sở dữ liệu",[["C",5,"12-20","C301"]],"Ca S3","16/07/2027","TĐ","PM"],"ITS318_262_D01":["Cơ sở lập trình",[["S",2,"13-21","C305"]],"Ca 5","14/07/2027","TĐ","PM"],"ITS318_262_D02":["Cơ sở lập trình",[["S",3,"12-20","C205"]],"Ca 5","14/07/2027","TĐ","PM"],"ITS318_262_D03":["Cơ sở lập trình",[["S",5,"12-20","C201"]],"Ca 5","14/07/2027","TĐ","PM"],"ITS318_262_D04":["Cơ sở lập trình",[["C",5,"12-20","C205"]],"Ca 5","14/07/2027","TĐ","PM"],"BAF715_262_D01":["Cơ sở lập trình trong kinh tế",[["C",2,"13-21","C201"]],"Ca S1","13/07/2027","TĐ","PM"],"ITS315_262_D01":["Core Banking và Ngân hàng điện tử",[["S",3,"1-9","A201"]],"Ca C1","20/04/2027","TĐ","PM"],"ITS724_262_D01":["Giải thuật ứng dụng trong kinh doanh",[["C",3,"1-9","C203"]],"Ca C2","23/04/2027","TĐ","PM"],"ITS724_262_D02":["Giải thuật ứng dụng trong kinh doanh",[["S",5,"12-20","C203"]],"Ca C3","18/07/2027","TĐ","PM"],"ITS724_262_D03":["Giải thuật ứng dụng trong kinh doanh",[["C",5,"12-20","C203"]],"Ca C3","18/07/2027","TĐ","PM"],"BAF737_262_D01":["Giới thiệu về khoa học máy tính",[["S",6,"6-8","B1.401"],["S",5,"6-8","A201"]],"Ca 4","24/04/2027","TĐ",""],"ITS704_262_D01":["Hệ hoạch định nguồn lực doanh nghiệp",[["S",4,"1-9","B1.202"]],"Ca C3","29/04/2027","TĐ","PM"],"ITS704_262_D02":["Hệ hoạch định nguồn lực doanh nghiệp",[["S",5,"1-9","A306"]],"Ca C3","29/04/2027","TĐ","PM"],"ITS704_262_D03":["Hệ hoạch định nguồn lực doanh nghiệp",[["S",5,"1-9","A307"]],"Ca C3","29/04/2027","TĐ","PM"],"ITS704_262_D04":["Hệ hoạch định nguồn lực doanh nghiệp",[["S",5,"1-9","A308"]],"Ca C3","29/04/2027","TĐ","PM"],"ITS705_262_D01":["Hệ quản trị cơ sở dữ liệu",[["S",3,"12-17","C305"]],"Ca S3","17/07/2027","TĐ","PM"],"ITS705_262_D02":["Hệ quản trị cơ sở dữ liệu",[["C",3,"12-17","C305"]],"Ca S3","17/07/2027","TĐ","PM"],"ITS705_262_D03":["Hệ quản trị cơ sở dữ liệu",[["S",4,"12-17","C305"]],"Ca S3","17/07/2027","TĐ","PM"],"ITS705_262_D04":["Hệ quản trị cơ sở dữ liệu",[["C",4,"12-17","C305"]],"Ca S3","17/07/2027","TĐ","PM"],"ITS705_262_D05":["Hệ quản trị cơ sở dữ liệu",[["S",6,"12-17","C201"]],"Ca S3","17/07/2027","TĐ","PM"],"ITS725_262_D01":["Hệ thống thanh toán điện tử",[["C",6,"1-6","B1.205"]],"Ca 2","29/04/2027","TĐ",""],"ITS725_262_D02":["Hệ thống thanh toán điện tử",[["C",7,"1,3-7","B1.302"]],"Ca 2","29/04/2027","TĐ",""],"ITS760_262_D01":["Hệ thống thông tin thuơng mại điện tử",[["C",3,"12-20","B1.202"]],"Ca 3","15/07/2027","TĐ",""],"ITS323_262_D01":["Kiểm toán & kiểm soát hệ thống thông tin",[["S",5,"1-6","A102"]],"Ca 2","29/04/2027","TĐ",""],"ITS323_262_D02":["Kiểm toán & kiểm soát hệ thống thông tin",[["C",7,"1,3-7","B1.301"]],"Ca 2","29/04/2027","TĐ",""],"ITS763_262_D01":["Kiến trúc vi dịch vụ và điện toán đám mây",[["S",4,"1-9","C201"]],"Ca 3","29/04/2027","TĐ",""],"ITS326_262_D01":["Lập trình hướng đối tượng",[["S",2,"1-9","C201"]],"Ca C1","26/04/2027","TĐ","PM"],"ITS326_262_D02":["Lập trình hướng đối tượng",[["C",2,"1-9","C201"]],"Ca C1","26/04/2027","TĐ","PM"],"ITS326_262_D03":["Lập trình hướng đối tượng",[["S",3,"1-9","C305"]],"Ca C2","26/04/2027","TĐ","PM"],"ITS326_262_D04":["Lập trình hướng đối tượng",[["C",3,"1-9","C301"]],"Ca C2","26/04/2027","TĐ","PM"],"ITS326_262_D05":["Lập trình hướng đối tượng",[["S",4,"1-9","C305"]],"Ca C2","26/04/2027","TĐ","PM"],"ITS326_262_D06":["Lập trình hướng đối tượng",[["S",6,"1-8","C201"],["S",3,"9","C301"]],"Ca C2","26/04/2027","TĐ","PM"],"ITS326_262_D07":["Lập trình hướng đối tượng",[["C",2,"1-9","C205"]],"Ca C2","26/04/2027","TĐ","PM"],"ITS708_262_D01":["Lập trình web",[["S",5,"1-9","C201"]],"Ca 5","26/04/2027","TĐ","PM"],"ITS710_262_D01":["Phân tích dữ liệu mạng xã hội",[["S",2,"1-9","B1.305"]],"Ca 2","26/04/2027","TĐ",""],"ITS710_262_D02":["Phân tích dữ liệu mạng xã hội",[["S",6,"1-8","B1.304"],["S",5,"7","B1.403"]],"Ca 2","26/04/2027","TĐ",""],"ITS710_262_D03":["Phân tích dữ liệu mạng xã hội",[["C",6,"1-8","B1.206"],["C",7,"8","B1.402"]],"Ca 2","26/04/2027","TĐ",""],"ITS710_262_D04":["Phân tích dữ liệu mạng xã hội",[["S",4,"12-20","B1.105"]],"Ca 3","13/07/2027","TĐ",""],"ITS339_262_D01":["Phân tích thiết kế hệ thống thông tin",[["C",5,"12-20","A301"]],"Ca C3","15/07/2027","TĐ","PM"],"ITS339_262_D02":["Phân tích thiết kế hệ thống thông tin",[["C",5,"12-20","A302"]],"Ca C3","15/07/2027","TĐ","PM"],"ITS339_262_D03":["Phân tích thiết kế hệ thống thông tin",[["C",5,"12-20","A305"]],"Ca C3","15/07/2027","TĐ","PM"],"ITS312_262_D01":["Phân tích thiết kế hệ thống thương mại điện tử",[["S",6,"12-20","B1.303"]],"Ca 1","17/07/2027","TĐ",""],"ITS340_262_D01":["Phân tích và tối ưu hóa bộ máy tìm kiếm",[["C",6,"12-17","B1.305"]],"Ca 2","12/07/2027","TĐ",""],"ITS340_262_D02":["Phân tích và tối ưu hóa bộ máy tìm kiếm",[["C",7,"12-15,17-18","B1.306"]],"Ca 2","12/07/2027","TĐ",""],"ITS729_262_D01":["Phát triển ứng dụng di động",[["S",2,"1-9","C301"]],"Ca 3","23/04/2027","TĐ",""],"ITS729_262_D02":["Phát triển ứng dụng di động",[["C",5,"1-9","C205"]],"Ca 3","23/04/2027","TĐ",""],"ITS729_262_D03":["Phát triển ứng dụng di động",[["C",5,"12-20","C201"]],"Ca 2","15/07/2027","TĐ",""],"ITS332_262_D01":["Phát triển ứng dụng mã nguồn mở",[["S",2,"13-21","C301"]],"Ca 3","16/07/2027","TĐ",""],"ITS332_262_D02":["Phát triển ứng dụng mã nguồn mở",[["C",2,"13-21","C301"]],"Ca 3","16/07/2027","TĐ",""],"ITS713_262_D01":["Quản lý quy trình nghiệp vụ",[["S",6,"12-17","A004"]],"Ca 2","12/07/2027","TĐ",""],"ITS713_262_D02":["Quản lý quy trình nghiệp vụ",[["C",6,"12-17","B1.302"]],"Ca 2","12/07/2027","TĐ",""],"ITS344_262_D01":["Quản trị dự án hệ thống thông tin",[["S",2,"13-21","B1.306"]],"Ca C3","13/07/2027","TĐ","PM"],"ITS344_262_D02":["Quản trị dự án hệ thống thông tin",[["C",6,"12-20","B1.203"]],"Ca C3","13/07/2027","TĐ","PM"],"ITS346_262_D01":["Quản trị tác nghiệp thương mại điện tử",[["S",6,"12-17","A101"]],"Ca 3","16/07/2027","TĐ",""],"ITS346_262_D02":["Quản trị tác nghiệp thương mại điện tử",[["C",7,"12-15,17-18","B1.406"]],"Ca 3","16/07/2027","TĐ",""],"ITS755_262_D01":["Thiết kế giao diện và trải nghiệm người dùng",[["C",2,"13-21","B1.304"]],"Ca 1","15/07/2027","TĐ",""],"ITS755_262_D02":["Thiết kế giao diện và trải nghiệm người dùng",[["S",3,"12-20","B1.302"]],"Ca 1","15/07/2027","TĐ",""],"ITS752_262_D01":["Thiết kế và Quản trị Website",[["S",2,"13-21","C201"]],"Ca 4","12/07/2027","TĐ",""],"ITB303_262_D01":["Thương mại điện tử",[["C",2,"1-9","B1.306"]],"Ca C1","22/04/2027","TĐ","PM"],"ITB303_262_D02":["Thương mại điện tử",[["C",3,"1-9","B1.306"]],"Ca C1","22/04/2027","TĐ","PM"],"ITB303_262_D03":["Thương mại điện tử",[["C",5,"1-9","A306"]],"Ca C2","22/04/2027","TĐ","PM"],"ITB303_262_D04":["Thương mại điện tử",[["C",5,"1-9","A307"]],"Ca C2","22/04/2027","TĐ","PM"],"ITB303_262_D05":["Thương mại điện tử",[["C",5,"1-9","A308"]],"Ca C2","22/04/2027","TĐ","PM"],"ITS717_262_D01":["Thương mại xã hội",[["C",3,"12-20","B1.401"]],"Ca C1","13/07/2027","TĐ","PM"],"ITS717_262_D02":["Thương mại xã hội",[["S",4,"12-20","B1.102"]],"Ca C1","13/07/2027","TĐ","PM"],"ITS301_262_D01":["Tin học ứng dụng",[["S",2,"1-9","C204"]],"Ca S3","23/04/2027","TĐ","PM"],"ITS301_262_D02":["Tin học ứng dụng",[["C",2,"1-9","C204"]],"Ca S2","23/04/2027","TĐ","PM"],"ITS301_262_D03":["Tin học ứng dụng",[["S",3,"1-9","C203"]],"Ca S3","23/04/2027","TĐ","PM"],"ITS301_262_D04":["Tin học ứng dụng",[["C",3,"1-9","C201"]],"Ca S2","23/04/2027","TĐ","PM"],"ITS301_262_D05":["Tin học ứng dụng",[["S",4,"1-9","C205"]],"Ca S3","23/04/2027","TĐ","PM"],"ITS301_262_D06":["Tin học ứng dụng",[["C",4,"1-9","C205"]],"Ca S2","23/04/2027","TĐ","PM"],"ITS301_262_D07":["Tin học ứng dụng",[["S",5,"1-9","C301"]],"Ca S3","23/04/2027","TĐ","PM"],"ITS301_262_D08":["Tin học ứng dụng",[["C",5,"1-9","C201"]],"Ca S2","23/04/2027","TĐ","PM"],"ITS301_262_D09":["Tin học ứng dụng",[["S",2,"13-21","C204"]],"Ca C3","16/07/2027","TĐ","PM"],"ITS301_262_D10":["Tin học ứng dụng",[["C",2,"13-21","C203"]],"Ca C3","16/07/2027","TĐ","PM"],"ITS301_262_D11":["Tin học ứng dụng",[["S",3,"12-20","C201"]],"Ca C2","16/07/2027","TĐ","PM"],"ITS301_262_D12":["Tin học ứng dụng",[["C",3,"12-20","C201"]],"Ca C2","16/07/2027","TĐ","PM"],"ITS301_262_D13":["Tin học ứng dụng",[["S",4,"12-20","C201"]],"Ca C3","16/07/2027","TĐ","PM"],"ITS301_262_D14":["Tin học ứng dụng",[["C",4,"12-20","C201"]],"Ca C3","16/07/2027","TĐ","PM"],"ITS301_262_D15":["Tin học ứng dụng",[["S",5,"12-20","C204"]],"Ca C2","16/07/2027","TĐ","PM"],"ITS301_262_D16":["Tin học ứng dụng",[["C",5,"12-20","C204"]],"Ca C2","16/07/2027","TĐ","PM"],"AIN712_262_D01":["AI tạo sinh",[["S",2,"13-21","B1.305"]],"Ca 3","12/07/2027","TĐ",""],"AIN717_262_D01":["AI và Xã hội",[["C",2,"13-18","B1.204"]],"Ca 1","19/07/2027","TĐ",""],"ITS314_262_D01":["Cấu trúc dữ liệu và giải thuật",[["C",7,"1,3-8","B1.103"],["C",6,"7-8","B1.406"]],"Ca 1","27/04/2027","TĐ",""],"AIN705_LT_262_D01":["Cấu trúc rời rạc cho AI",[["S",2,"1-6","A103"]],"Ca 4","28/04/2027","TĐ",""],"AIN705_LT_262_D02":["Cấu trúc rời rạc cho AI",[["C",2,"1-6","A102"]],"Ca 4","28/04/2027","TĐ",""],"DAT726_262_D01":["Cơ sở toán cho khoa học dữ liệu 1",[["S",3,"1-9","B1.306"]],"Ca 2","27/04/2027","TĐ",""],"DAT726_262_D02":["Cơ sở toán cho khoa học dữ liệu 1",[["C",3,"1-9","B1.106"]],"Ca 2","27/04/2027","TĐ",""],"AIN709_LT_262_D01":["Đồ thị và tối ưu tổ hợp",[["S",4,"1-9","B1.206"]],"Ca 2","23/04/2027","TĐ",""],"DAT704_262_D01":["Học máy",[["C",4,"1-9","A301"]],"Ca 3","22/04/2027","TĐ",""],"AIN716_262_D01":["Học tăng cường & Ra quyết định",[["S",3,"12-20","B1.301"]],"Ca 2","14/07/2027","TĐ",""],"DAT728_262_D01":["Khoa học dữ liệu cho kinh doanh nâng cao",[["C",6,"12-17","B1.401"]],"Ca 1","12/07/2027","TĐ",""],"DAT706_262_D01":["Khoa học dữ liệu cho tài chính",[["C",6,"12-20","A305"]],"Ca 1","14/07/2027","TĐ",""],"DAT708_262_D01":["Lập trình Python cho phân tích dữ liệu",[["C",5,"1-9","B1.103"]],"Ca 4","28/04/2027","TĐ",""],"DAT708_262_D02":["Lập trình Python cho phân tích dữ liệu",[["C",6,"1-8","A308"],["C",3,"8","B1.301"]],"Ca 4","28/04/2027","TĐ",""],"DAT708_262_D03":["Lập trình Python cho phân tích dữ liệu",[["S",7,"1,3-8","B1.106"],["S",3,"7-8","B1.402"]],"Ca 4","28/04/2027","TĐ",""],"ITS723_262_D01":["Logic ứng dụng trong kinh doanh",[["S",2,"1-5","B1.104"],["S",5,"4","A104"]],"Ca 1","27/04/2027","TĐ",""],"ITS723_262_D02":["Logic ứng dụng trong kinh doanh",[["C",3,"6-8","A101"],["C",6,"6-8","B1.301"]],"Ca 1","27/04/2027","TĐ",""],"ITS723_262_D03":["Logic ứng dụng trong kinh doanh",[["S",4,"6-8","B1.302"],["S",5,"6-8","A203"]],"Ca 1","27/04/2027","TĐ",""],"ITS723_262_D04":["Logic ứng dụng trong kinh doanh",[["C",4,"6-8","B1.204"],["C",6,"6-8","B1.204"]],"Ca 1","27/04/2027","TĐ",""],"ITS723_262_D05":["Logic ứng dụng trong kinh doanh",[["S",5,"6-8","A104"],["S",4,"6-8","A104"]],"Ca 1","27/04/2027","TĐ",""],"ITS723_262_D06":["Logic ứng dụng trong kinh doanh",[["C",5,"6-8","A101"],["C",4,"6-8","A101"]],"Ca 1","27/04/2027","TĐ",""],"ITS723_262_D07":["Logic ứng dụng trong kinh doanh",[["C",7,"1,3-5","B1.401"],["C",6,"4-5","B1.401"]],"Ca 1","27/04/2027","TĐ",""],"ITS723_262_D08":["Logic ứng dụng trong kinh doanh",[["S",5,"12-16","B1.401"],["S",3,"13","A101"]],"Ca 4","17/07/2027","TĐ",""],"ITS723_262_D09":["Logic ứng dụng trong kinh doanh",[["C",5,"12-16","A202"],["C",3,"13","A202"]],"Ca 4","17/07/2027","TĐ",""],"ITS723_262_D10":["Logic ứng dụng trong kinh doanh",[["C",4,"12-16","B1.403"],["C",2,"15","A303"]],"Ca 4","17/07/2027","TĐ",""],"AMA303_262_D01":["Lý thuyết xác suất và thống kê toán",[["S",2,"1-9","A202"]],"Ca 2","23/04/2027","TĐ",""],"AMA303_262_D02":["Lý thuyết xác suất và thống kê toán",[["S",2,"1-9","A004"]],"Ca 2","23/04/2027","TĐ",""],"AMA303_262_D03":["Lý thuyết xác suất và thống kê toán",[["C",2,"1-9","B1.404"]],"Ca 2","23/04/2027","TĐ",""],"AMA303_262_D04":["Lý thuyết xác suất và thống kê toán",[["S",3,"12-20","B1.403"]],"Ca 1","16/07/2027","TĐ",""],"AMA303_262_D05":["Lý thuyết xác suất và thống kê toán",[["C",3,"16-20","B1.204"],["C",4,"17-20","B1.204"]],"Ca 1","16/07/2027","TĐ",""],"AMA303_262_D06":["Lý thuyết xác suất và thống kê toán",[["S",4,"12-20","B1.304"]],"Ca 1","16/07/2027","TĐ",""],"AMA303_262_D07":["Lý thuyết xác suất và thống kê toán",[["C",4,"12-20","B1.104"]],"Ca 1","16/07/2027","TĐ",""],"AMA303_262_D08":["Lý thuyết xác suất và thống kê toán",[["S",5,"12-20","B1.304"]],"Ca 1","16/07/2027","TĐ",""],"AMA303_262_D09":["Lý thuyết xác suất và thống kê toán",[["S",5,"12-20","B1.403"]],"Ca 1","16/07/2027","TĐ",""],"AMA303_262_D10":["Lý thuyết xác suất và thống kê toán",[["S",5,"12-20","B1.404"]],"Ca 1","16/07/2027","TĐ",""],"AMA303_262_D11":["Lý thuyết xác suất và thống kê toán",[["C",5,"12-20","LỚP ẢO"]],"Ca 1","16/07/2027","TĐ",""],"AMA303_262_D11_GHÉP":["Lý thuyết xác suất và thống kê toán",[["C",5,"12-20","B1.104"]],"Ca 1","16/07/2027","TĐ",""],"AIN711_LT_262_D01":["Nền tảng Học máy",[["C",7,"1,3-8","B1.206"],["C",5,"8-9","A103"]],"Ca 4","26/04/2027","TĐ",""],"AIN704_LT_262_D01":["Nhập môn Trí tuệ nhân tạo",[["S",2,"1-9","B1.302"]],"Ca 3","22/04/2027","TĐ",""],"DAT712_262_D01":["Phân tích dữ liệu lớn",[["C",4,"12-20","B1.306"]],"Ca 1","17/07/2027","TĐ",""],"DAT712_262_D02":["Phân tích dữ liệu lớn",[["S",5,"12-20","A305"]],"Ca 1","17/07/2027","TĐ",""],"DAT729_262_D01":["Phương pháp số",[["C",2,"1-6","A101"]],"Ca 4","22/04/2027","TĐ",""],"DAT729_262_D02":["Phương pháp số",[["S",3,"1-6","B1.404"]],"Ca 4","22/04/2027","TĐ",""],"DAT716_262_D01":["Phương pháp tối ưu trong kinh tế",[["C",5,"12-17","A201"]],"Ca 2","17/07/2027","TĐ",""],"DAT716_262_D02":["Phương pháp tối ưu trong kinh tế",[["C",6,"12-17","B1.406"]],"Ca 2","17/07/2027","TĐ",""],"DAT732_262_D01":["Thống kê Bayes",[["C",4,"1-9","C201"]],"Ca 1","24/04/2027","TĐ",""],"DAT732_262_D02":["Thống kê Bayes",[["S",5,"1-9","C205"]],"Ca 1","24/04/2027","TĐ",""],"ITS314_TH_262_D01":["Thực hành Cấu trúc dữ liệu và giải thuật",[["C",6,"12-16","B1.405"],["C",4,"16","B1.204"]],"Ca 3","14/07/2027","TĐ",""],"AIN705_TH_262_D01":["Thực hành Cấu trúc rời rạc cho AI",[["S",2,"16-21","C205"]],"Ca 3","14/07/2027","TĐ",""],"AIN705_TH_262_D02":["Thực hành Cấu trúc rời rạc cho AI",[["C",2,"16-21","C305"]],"Ca 3","14/07/2027","TĐ",""],"AIN709_TH_262_D01":["Thực hành Đồ thị và tối ưu tổ hợp",[["S",4,"12-16","C205"],["S",5,"16","C305"]],"Ca 3","17/07/2027","TĐ",""],"AIN711_TH_262_D01":["Thực hành Nền tảng Học máy",[["C",3,"12-17","C205"]],"Ca 2","17/07/2027","TĐ",""],"AIN704_TH_262_D01":["Thực hành Nhập môn trí tuệ nhân tạo",[["C",5,"1-6","C301"]],"Ca 4","29/04/2027","TĐ",""],"AIN706_TH_262_D01":["Thực hành Toán cho học máy 2",[["S",4,"16-20","C301"],["S",5,"20","C305"]],"Ca 4","17/07/2027","TĐ",""],"AIN706_TH_262_D02":["Thực hành Toán cho học máy 2",[["C",4,"16-20","C205"],["C",5,"20","C305"]],"Ca 4","17/07/2027","TĐ",""],"ITE718_TH_262_D01":["Thực hành Toán cho tin học 2",[["S",7,"12-15","B1.306"],["S",5,"14-15","B1.302"]],"Ca 4","15/07/2027","TĐ",""],"AIN708_TH_262_D01":["Thực hành Xác suất & thống kê",[["S",2,"16-21","B1.405"]],"Ca 1","12/07/2027","TĐ",""],"AIN708_TH_262_D02":["Thực hành Xác suất & thống kê",[["C",2,"16-21","A102"]],"Ca 1","12/07/2027","TĐ",""],"AIN708_TH_262_D03":["Thực hành Xác suất & thống kê",[["C",7,"12-15","B1.205"],["C",4,"14-15","B1.202"]],"Ca 1","12/07/2027","TĐ",""],"AIN706_LT_262_D01":["Toán cho học máy 2",[["C",3,"1-6","B1.405"]],"Ca 2","23/04/2027","TĐ",""],"AIN706_LT_262_D02":["Toán cho học máy 2",[["S",4,"1-6","B1.301"]],"Ca 2","23/04/2027","TĐ",""],"ITE718_LT_262_D01":["Toán cho tin học 2",[["S",3,"12-16","B1.402"],["S",2,"15","A103"]],"Ca 4","16/07/2027","TĐ",""],"MAE702_262_D01":["Toán kinh tế 2",[["S",2,"6-8","B1.104"],["S",4,"6-8","A101"]],"Ca 1","23/04/2027","TĐ",""],"MAE702_262_D02":["Toán kinh tế 2",[["S",2,"6-8","B1.204"],["S",4,"6-8","A102"]],"Ca 1","23/04/2027","TĐ",""],"MAE702_262_D03":["Toán kinh tế 2",[["C",2,"6-8","B1.104"],["C",7,"6-8","B1.104"]],"Ca 1","23/04/2027","TĐ",""],"MAE702_262_D04":["Toán kinh tế 2",[["C",2,"6-8","B1.204"],["C",7,"6-8","B1.204"]],"Ca 1","23/04/2027","TĐ",""],"MAE702_262_D05":["Toán kinh tế 2",[["C",2,"6-8","A004"],["C",7,"6-8","A004"]],"Ca 1","23/04/2027","TĐ",""],"MAE702_262_D06":["Toán kinh tế 2",[["S",3,"1-5","B1.104"],["S",5,"5","A104"]],"Ca 1","23/04/2027","TĐ",""],"MAE702_262_D07":["Toán kinh tế 2",[["C",3,"1-5","A004"],["C",5,"5","A201"]],"Ca 1","23/04/2027","TĐ",""],"MAE702_262_D08":["Toán kinh tế 2",[["C",3,"1-5","B1.404"],["C",5,"5","A104"]],"Ca 1","23/04/2027","TĐ",""],"MAE702_262_D09":["Toán kinh tế 2",[["S",4,"1-5","A101"],["S",2,"5","B1.204"]],"Ca 1","23/04/2027","TĐ",""],"MAE702_262_D10":["Toán kinh tế 2",[["C",4,"1-5","B1.204"],["C",2,"5","B1.204"]],"Ca 1","23/04/2027","TĐ",""],"MAE702_262_D10_GHÉP":["Toán kinh tế 2",[["C",4,"1-5","LỚP ẢO"],["C",2,"5","LỚP ẢO"]],"Ca 1","23/04/2027","TĐ",""],"MAE702_262_D11":["Toán kinh tế 2",[["S",5,"1-6","B1.403"]],"Ca 1","23/04/2027","TĐ",""],"MAE702_262_D12":["Toán kinh tế 2",[["S",5,"12-16","A102"],["S",4,"16","A102"]],"Ca 4","14/07/2027","TĐ",""],"MAE702_262_D13":["Toán kinh tế 2",[["C",5,"16-20","A102"],["C",4,"20","A102"]],"Ca 4","14/07/2027","TĐ",""],"MAE702_262_D14":["Toán kinh tế 2",[["C",6,"12-16","A103"],["C",4,"16","A102"]],"Ca 4","14/07/2027","TĐ",""],"MAE702_262_D15":["Toán kinh tế 2",[["C",6,"12-16","A101"],["C",4,"16","A103"]],"Ca 4","14/07/2027","TĐ",""],"BIN701_262_D01":["Trí tuệ kinh doanh",[["C",4,"1-9","B1.402"]],"Ca 2","27/04/2027","TĐ",""],"AIN701_262_D01":["Trí tuệ nhân tạo",[["C",3,"12-20","B1.402"]],"Ca 1","15/07/2027","TĐ",""],"DAT720_262_D01":["Trí tuệ nhân tạo cho kinh doanh",[["S",5,"1-9","B1.305"]],"Ca 2","27/04/2027","TĐ",""],"DAT713_262_D01":["Trực quan hóa dữ liệu",[["S",4,"12-20","B1.101"]],"Ca 4","15/07/2027","TĐ",""],"AIN708_LT_262_D01":["Xác suất & thống kê",[["C",5,"1-9","B1.406"]],"Ca 4","29/04/2027","TĐ",""],"AIN708_LT_262_D02":["Xác suất & thống kê",[["C",4,"16-20","B1.401"],["C",6,"17-20","B1.402"]],"Ca 1","13/07/2027","TĐ",""],"AIN708_LT_262_D03":["Xác suất & thống kê",[["S",5,"16-20","B1.305"],["S",3,"17-20","A004"]],"Ca 1","13/07/2027","TĐ",""],"MLM308_262_D01":["Chủ nghĩa xã hội khoa học",[["S",2,"1-6","B1.304"]],"Ca S2","22/04/2027","TĐ","PM"],"MLM308_262_D02":["Chủ nghĩa xã hội khoa học",[["S",2,"1-6","B1.403"]],"Ca S2","22/04/2027","TĐ","PM"],"MLM308_262_D03":["Chủ nghĩa xã hội khoa học",[["S",3,"1-6","A004"]],"Ca S1","22/04/2027","TĐ","PM"],"MLM308_262_D04":["Chủ nghĩa xã hội khoa học",[["S",3,"1-6","B1.403"]],"Ca S1","22/04/2027","TĐ","PM"],"MLM308_262_D05":["Chủ nghĩa xã hội khoa học",[["C",3,"1-6","B1.403"]],"Ca S3","22/04/2027","TĐ","PM"],"MLM308_262_D05_GHÉP":["Chủ nghĩa xã hội khoa học",[["C",3,"1-6","LỚP ẢO"]],"Ca S3","22/04/2027","TĐ","PM"],"MLM308_262_D06":["Chủ nghĩa xã hội khoa học",[["S",4,"1-6","B1.204"]],"Ca C3","22/04/2027","TĐ","PM"],"MLM308_262_D07":["Chủ nghĩa xã hội khoa học",[["C",4,"1-6","B1.104"]],"Ca S3","22/04/2027","TĐ","PM"],"MLM308_262_D08":["Chủ nghĩa xã hội khoa học",[["S",5,"1-6","B1.204"]],"Ca C3","22/04/2027","TĐ","PM"],"MLM308_262_D08_GHÉP":["Chủ nghĩa xã hội khoa học",[["S",5,"1-6","LỚP ẢO"]],"Ca C3","22/04/2027","TĐ","PM"],"MLM308_262_D09":["Chủ nghĩa xã hội khoa học",[["S",2,"13-18","B1.304"]],"Ca S2","19/07/2027","TĐ","PM"],"MLM308_262_D10":["Chủ nghĩa xã hội khoa học",[["S",2,"13-18","B1.403"]],"Ca S2","19/07/2027","TĐ","PM"],"MLM308_262_D11":["Chủ nghĩa xã hội khoa học",[["S",3,"12-17","B1.104"]],"Ca S3","19/07/2027","TĐ","PM"],"MLM308_262_D12":["Chủ nghĩa xã hội khoa học",[["S",3,"12-17","B1.204"]],"Ca S3","19/07/2027","TĐ","PM"],"MLM308_262_D13":["Chủ nghĩa xã hội khoa học",[["C",3,"12-17","B1.404"]],"Ca C3","19/07/2027","TĐ","PM"],"MLM308_262_D14":["Chủ nghĩa xã hội khoa học",[["S",4,"12-17","B1.404"]],"Ca S1","19/07/2027","TĐ","PM"],"MLM308_262_D15":["Chủ nghĩa xã hội khoa học",[["C",4,"12-17","B1.404"]],"Ca C2","19/07/2027","TĐ","PM"],"MLM308_262_D15_GHÉP":["Chủ nghĩa xã hội khoa học",[["C",4,"12-17","LỚP ẢO"]],"Ca C2","19/07/2027","TĐ","PM"],"MLM308_262_D16":["Chủ nghĩa xã hội khoa học",[["S",5,"12-17","A004"]],"Ca C3","19/07/2027","TĐ","PM"],"MLM308_262_D17":["Chủ nghĩa xã hội khoa học",[["S",5,"12-17","A101"]],"Ca C1","19/07/2027","TĐ","PM"],"MLM308_262_D18":["Chủ nghĩa xã hội khoa học",[["C",5,"12-17","A101"]],"Ca S1","19/07/2027","TĐ","PM"],"MLM308_262_D19":["Chủ nghĩa xã hội khoa học",[["C",5,"12-17","A004"]],"Ca C1","19/07/2027","TĐ","PM"],"SOC301_262_D01":["Cơ sở văn hóa Việt Nam",[["S",3,"1-6","B1.402"]],"Ca S1","24/04/2027","TĐ","PM"],"SOC301_262_D02":["Cơ sở văn hóa Việt Nam",[["S",6,"6-8","A004"],["S",7,"6-8","A104"]],"Ca S1","24/04/2027","TĐ","PM"],"SOC301_262_D03":["Cơ sở văn hóa Việt Nam",[["S",2,"13-16,21","A004"],["S",6,"16","A303"]],"Ca S2","17/07/2027","TĐ","PM"],"MLM309_262_D01":["Lịch sử Đảng Cộng sản Việt Nam",[["C",5,"1-6","B1.403"]],"Ca C1","27/04/2027","TĐ","PM"],"MLM309_262_D02":["Lịch sử Đảng Cộng sản Việt Nam",[["S",6,"1-6","B1.404"]],"Ca C1","27/04/2027","TĐ","PM"],"MLM309_262_D03":["Lịch sử Đảng Cộng sản Việt Nam",[["C",6,"1-6","B1.304"]],"Ca C1","27/04/2027","TĐ","PM"],"MLM309_262_D04":["Lịch sử Đảng Cộng sản Việt Nam",[["S",7,"1,3-7","B1.304"]],"Ca C1","27/04/2027","TĐ","PM"],"MLM309_262_D05":["Lịch sử Đảng Cộng sản Việt Nam",[["S",6,"12-17","B1.304"]],"Ca C2","15/07/2027","TĐ","PM"],"MLM309_262_D06":["Lịch sử Đảng Cộng sản Việt Nam",[["C",6,"12-17","B1.304"]],"Ca C2","15/07/2027","TĐ","PM"],"MLM309_262_D07":["Lịch sử Đảng Cộng sản Việt Nam",[["C",7,"12-15,17-18","B1.304"]],"Ca C2","15/07/2027","TĐ","PM"],"MLM305_262_D01":["Logic học",[["S",3,"12-16","A004"],["S",5,"16","A103"]],"Ca S1","15/07/2027","TĐ","PM"],"MLM305_262_D02":["Logic học",[["S",4,"12-16","B1.302"],["S",3,"15","B1.201"]],"Ca S1","15/07/2027","TĐ","PM"],"MLM305_262_D03":["Logic học",[["C",4,"12-16","B1.405"],["C",3,"15","B1.201"]],"Ca S1","15/07/2027","TĐ","PM"],"SOC303_262_D01":["Tâm lý học",[["C",3,"1-5","A101"],["C",5,"4","A201"]],"Ca S2","27/04/2027","TĐ","PM"],"SOC303_262_D02":["Tâm lý học",[["C",6,"6-8","A101"],["C",4,"6-8","A004"]],"Ca S1","27/04/2027","TĐ","PM"],"SOC303_262_D03":["Tâm lý học",[["S",2,"13-16,21","A101"],["S",3,"12","A101"]],"Ca S2","16/07/2027","TĐ","PM"],"SOC303_262_D04":["Tâm lý học",[["S",4,"12-16","A004"],["S",5,"13","A103"]],"Ca S2","16/07/2027","TĐ","PM"],"SOC303_262_D05":["Tâm lý học",[["C",3,"16-20","A101"],["C",6,"20","A101"]],"Ca S2","16/07/2027","TĐ","PM"],"SOC303_262_D06":["Tâm lý học",[["S",5,"12-16","B1.405"],["S",3,"14","A101"]],"Ca S2","16/07/2027","TĐ","PM"],"SOC303_262_D07":["Tâm lý học",[["C",5,"12-16","A303"],["C",3,"14","A202"]],"Ca S2","16/07/2027","TĐ","PM"],"SOC303_262_D08":["Tâm lý học",[["S",6,"1-6","A103"]],"Ca S1","27/04/2027","TĐ","PM"],"SOC303_262_D09":["Tâm lý học",[["S",4,"1-6","A103"]],"Ca S2","27/04/2027","TĐ","PM"],"SOC303_262_D10":["Tâm lý học",[["C",4,"1-6","A201"]],"Ca S2","27/04/2027","TĐ","PM"],"SOC303_262_D11":["Tâm lý học",[["C",6,"1-6","A103"]],"Ca S1","27/04/2027","TĐ","PM"],"MLM303_262_D01":["Tư tưởng Hồ Chí Minh",[["S",2,"1-6","B1.404"]],"Ca C1","25/04/2027","TĐ","PM"],"MLM303_262_D02":["Tư tưởng Hồ Chí Minh",[["S",3,"1-6","B1.304"]],"Ca C1","25/04/2027","TĐ","PM"],"MLM303_262_D03":["Tư tưởng Hồ Chí Minh",[["C",3,"1-6","B1.104"]],"Ca C3","25/04/2027","TĐ","PM"],"MLM303_262_D04":["Tư tưởng Hồ Chí Minh",[["C",3,"1-6","B1.204"]],"Ca C2","25/04/2027","TĐ","PM"],"MLM303_262_D05":["Tư tưởng Hồ Chí Minh",[["S",4,"1-6","A004"]],"Ca C2","25/04/2027","TĐ","PM"],"MLM303_262_D06":["Tư tưởng Hồ Chí Minh",[["C",4,"1-6","B1.403"]],"Ca S3","25/04/2027","TĐ","PM"],"MLM303_262_D07":["Tư tưởng Hồ Chí Minh",[["C",4,"1-6","B1.404"]],"Ca S3","25/04/2027","TĐ","PM"],"MLM303_262_D08":["Tư tưởng Hồ Chí Minh",[["S",5,"1-6","B1.404"]],"Ca S2","25/04/2027","TĐ","PM"],"MLM303_262_D09":["Tư tưởng Hồ Chí Minh",[["S",5,"1-6","B1.104"]],"Ca C3","25/04/2027","TĐ","PM"],"MLM303_262_D10":["Tư tưởng Hồ Chí Minh",[["S",6,"1-6","B1.104"]],"Ca S2","25/04/2027","TĐ","PM"],"MLM303_262_D10_GHÉP":["Tư tưởng Hồ Chí Minh",[["S",6,"1-6","LỚP ẢO"]],"Ca S2","25/04/2027","TĐ","PM"],"MLM303_262_D11":["Tư tưởng Hồ Chí Minh",[["S",2,"13-18","B1.104"]],"Ca 5","12/07/2027","TĐ","PM"],"MLM303_262_D12":["Tư tưởng Hồ Chí Minh",[["S",3,"12-17","B1.404"]],"Ca C1","12/07/2027","TĐ","PM"],"MLM303_262_D13":["Tư tưởng Hồ Chí Minh",[["C",3,"12-17","B1.104"]],"Ca C1","12/07/2027","TĐ","PM"],"MLM303_262_D14":["Tư tưởng Hồ Chí Minh",[["S",4,"12-17","B1.104"]],"Ca 5","12/07/2027","TĐ","PM"],"MLM303_262_D15":["Tư tưởng Hồ Chí Minh",[["S",4,"12-17","B1.204"]],"Ca C2","12/07/2027","TĐ","PM"],"MLM303_262_D16":["Tư tưởng Hồ Chí Minh",[["C",5,"12-17","B1.404"]],"Ca C3","12/07/2027","TĐ","PM"],"MLM303_262_D17":["Tư tưởng Hồ Chí Minh",[["C",5,"12-17","B1.204"]],"Ca C2","12/07/2027","TĐ","PM"],"MLM303_262_D18":["Tư tưởng Hồ Chí Minh",[["S",6,"12-17","B1.104"]],"Ca C3","12/07/2027","TĐ","PM"],"MLM303_262_D18_GHÉP":["Tư tưởng Hồ Chí Minh",[["S",6,"12-17","LỚP ẢO"]],"Ca C3","12/07/2027","TĐ","PM"],"MLM303_262_D19":["Tư tưởng Hồ Chí Minh",[["C",6,"12-17","B1.403"]],"Ca S3","12/07/2027","TĐ","PM"],"MLM303_262_D20":["Tư tưởng Hồ Chí Minh",[["C",6,"12-17","B1.404"]],"Ca S3","12/07/2027","TĐ","PM"],"MLM303_262_D21":["Tư tưởng Hồ Chí Minh",[["C",6,"12-17","A004"]],"Ca S2","12/07/2027","TĐ","PM"],"ACC725_262_D01":["Chuẩn mực Báo cáo tài chính quốc tế nâng cao",[["S",2,"1-9","A307"]],"Ca 3","23/04/2027","TĐ",""],"ACC725_262_D02":["Chuẩn mực Báo cáo tài chính quốc tế nâng cao",[["C",2,"1-9","A308"]],"Ca 3","23/04/2027","TĐ",""],"ACC725_262_D03":["Chuẩn mực Báo cáo tài chính quốc tế nâng cao",[["S",3,"1-9","B1.106"]],"Ca 3","23/04/2027","TĐ",""],"ACC718_262_D01":["Kế toán thuế",[["C",2,"13-21","B1.302"]],"Ca 3","19/07/2027","TĐ",""],"ACC309_262_D02":["Hệ thống thông tin kế toán",[["C",2,"13-21","B1.306"]],"Ca S1","16/07/2027","TĐ","PM"],"ACC309_262_D01":["Hệ thống thông tin kế toán",[["S",2,"13-21","A301"]],"Ca S1","16/07/2027","TĐ","PM"],"ACC701_262_D01":["Hệ thống thông tin kế toán nâng cao",[["C",3,"12-20","B1.206"]],"Ca 2","12/07/2027","TĐ",""],"ACC701_262_D02":["Hệ thống thông tin kế toán nâng cao",[["S",4,"12-20","B1.206"]],"Ca 2","12/07/2027","TĐ",""],"ACC701_262_D03":["Hệ thống thông tin kế toán nâng cao",[["C",4,"12-20","B1.203"]],"Ca 2","12/07/2027","TĐ",""],"ACC702_262_D01":["Kế toán chi phí",[["S",4,"1-9","A302"]],"Ca 3","22/04/2027","TĐ",""],"ACC305_262_D01":["Kế toán công",[["C",4,"1-9","A201"]],"Ca S1","29/04/2027","TĐ","PM"],"ACC717_262_D01":["Kế toán điều tra",[["C",4,"1-9","A308"]],"Ca 1","22/04/2027","TĐ",""],"ACC718_262_D03":["Kế toán thuế",[["C",3,"12-20","B1.301"]],"Ca 3","19/07/2027","TĐ",""],"ACC306_262_D01":["Kế toán ngân hàng",[["S",4,"1-9","B1.106"]],"Ca C1","22/04/2027","TĐ","PM"],"ACC306_262_D02":["Kế toán ngân hàng",[["C",4,"1-9","B1.303"]],"Ca C1","22/04/2027","TĐ","PM"],"ACC703_262_D01":["Kế toán ngân hàng nâng cao",[["C",5,"12-20","A308"]],"Ca 3","16/07/2027","TĐ",""],"ACC703_262_D02":["Kế toán ngân hàng nâng cao",[["S",6,"12-20","B1.106"]],"Ca 3","16/07/2027","TĐ",""],"ACC703_262_D03":["Kế toán ngân hàng nâng cao",[["C",6,"12-20","B1.103"]],"Ca 3","16/07/2027","TĐ",""],"ACC307_262_D01":["Kế toán quản trị",[["S",6,"1-8","A305"],["S",7,"8","B1.406"]],"Ca C3","24/04/2027","TĐ","PM"],"ACC705_262_D01":["Kế toán tài chính",[["S",2,"13-21","A306"]],"Ca C1","15/07/2027","TĐ","PM"],"ACC705_262_D02":["Kế toán tài chính",[["S",7,"12-15,17-20","A308"],["S",2,"20","B1.403"]],"Ca C1","15/07/2027","TĐ","PM"],"ACC705_262_D03":["Kế toán tài chính",[["C",7,"12-15,17-20","B1.203"],["C",2,"20","B1.204"]],"Ca C1","15/07/2027","TĐ","PM"],"ACC707_262_D01":["Kế toán tài chính các doanh nghiệp đặc thù",[["C",6,"1-8","A301"],["C",7,"8","B1.406"]],"Ca 4","29/04/2027","TĐ",""],"ACC707_262_D02":["Kế toán tài chính các doanh nghiệp đặc thù",[["S",7,"1,3-8","A305"],["S",6,"7-8","B1.204"]],"Ca 4","29/04/2027","TĐ",""],"ACC309_262_D03":["Hệ thống thông tin kế toán",[["S",3,"12-20","A305"]],"Ca S1","16/07/2027","TĐ","PM"],"ACC718_262_D02":["Kế toán thuế",[["S",3,"12-20","B1.206"]],"Ca 3","19/07/2027","TĐ",""],"BAF307_262_D02":["Thanh toán quốc tế",[["C",4,"12-20","B1.304"]],"Ca 2","14/07/2027","TĐ",""],"AUD302_262_D01":["Kiểm soát nội bộ",[["C",7,"1,3-8","A306"],["C",6,"7-8","B1.306"]],"Ca S1","27/04/2027","TĐ","PM"],"ACC714_262_D01":["Kiểm toán báo cáo tài chính",[["S",2,"1-9","B1.206"]],"Ca C2","28/04/2027","TĐ","PM"],"ACC714_262_D02":["Kiểm toán báo cáo tài chính",[["C",2,"1-9","B1.106"]],"Ca C2","28/04/2027","TĐ","PM"],"AUD301_262_D01":["Kiểm toán căn bản",[["S",3,"1-9","A302"]],"Ca 5","26/04/2027","TĐ","PM"],"AUD301_262_D02":["Kiểm toán căn bản",[["C",3,"1-9","A301"]],"Ca 5","26/04/2027","TĐ","PM"],"ACC720_262_D01":["Kiểm toán hoạt động",[["S",4,"12-20","B1.106"]],"Ca 2","15/07/2027","TĐ",""],"ACC301_262_D01":["Nguyên lý kế toán",[["S",2,"1-9","B1.406"]],"Ca C2","24/04/2027","TĐ","PM"],"ACC301_262_D02":["Nguyên lý kế toán",[["C",2,"1-9","B1.203"]],"Ca C1","24/04/2027","TĐ","PM"],"ACC301_262_D03":["Nguyên lý kế toán",[["S",3,"1-9","B1.205"]],"Ca C2","24/04/2027","TĐ","PM"],"ACC301_262_D04":["Nguyên lý kế toán",[["C",3,"1-9","A307"]],"Ca C1","24/04/2027","TĐ","PM"],"ACC301_262_D05":["Nguyên lý kế toán",[["S",4,"1-9","B1.406"]],"Ca C1","24/04/2027","TĐ","PM"],"ACC301_262_D06":["Nguyên lý kế toán",[["C",4,"1-9","B1.203"]],"Ca C1","24/04/2027","TĐ","PM"],"ACC301_262_D07":["Nguyên lý kế toán",[["C",5,"1-9","B1.401"]],"Ca C2","24/04/2027","TĐ","PM"],"ACC301_262_D08":["Nguyên lý kế toán",[["C",6,"1-8","B1.203"],["C",7,"8","B1.401"]],"Ca C2","24/04/2027","TĐ","PM"],"ACC301_262_D09":["Nguyên lý kế toán",[["S",2,"13-21","A305"]],"Ca S2","13/07/2027","TĐ","PM"],"ACC301_262_D10":["Nguyên lý kế toán",[["C",2,"13-21","A307"]],"Ca S2","13/07/2027","TĐ","PM"],"ACC301_262_D11":["Nguyên lý kế toán",[["S",3,"12-20","B1.205"]],"Ca S3","13/07/2027","TĐ","PM"],"ACC301_262_D12":["Nguyên lý kế toán",[["C",3,"12-20","A308"]],"Ca S3","13/07/2027","TĐ","PM"],"ACC301_262_D13":["Nguyên lý kế toán",[["S",4,"12-20","A307"]],"Ca S3","13/07/2027","TĐ","PM"],"ACC301_262_D14":["Nguyên lý kế toán",[["C",4,"12-20","A302"]],"Ca S1","13/07/2027","TĐ","PM"],"ACC301_262_D15":["Nguyên lý kế toán",[["C",5,"12-20","B1.306"]],"Ca S2","13/07/2027","TĐ","PM"],"ACC301_262_D16":["Nguyên lý kế toán",[["C",6,"12-20","A307"]],"Ca S3","13/07/2027","TĐ","PM"],"ACC301_262_D17":["Nguyên lý kế toán",[["S",7,"12-15,17-20","A302"],["S",6,"20","B1.404"]],"Ca S1","13/07/2027","TĐ","PM"],"ACC301_262_D18":["Nguyên lý kế toán",[["C",7,"12-15,17-20","B1.103"],["C",6,"20","B1.303"]],"Ca S2","13/07/2027","TĐ","PM"],"ACC722_262_D01":["Quản lý rủi ro doanh nghiệp",[["C",2,"13-21","B1.303"]],"Ca 2","15/07/2027","TĐ",""],"ACC722_262_D02":["Quản lý rủi ro doanh nghiệp",[["S",3,"12-20","B1.103"]],"Ca 2","15/07/2027","TĐ",""],"ACC723_262_D01":["Trực quan hóa dữ liệu ứng dụng trong kế toán, kiểm toán",[["S",3,"1-9","B1.206"]],"Ca 3","22/04/2027","TĐ",""],"ACC723_262_D02":["Trực quan hóa dữ liệu ứng dụng trong kế toán, kiểm toán",[["S",4,"12-20","B1.306"]],"Ca 2","17/07/2027","TĐ",""],"ACC723_262_D03":["Trực quan hóa dữ liệu ứng dụng trong kế toán, kiểm toán",[["C",5,"12-20","B1.302"]],"Ca 2","17/07/2027","TĐ",""],"INE315_262_D01":["Chính sách thương mại quốc tế",[["C",2,"13-21","B1.404"]],"Ca C3","18/07/2027","TĐ",""],"INB714_262_D01":["Chuyển đổi số",[["S",2,"1-9","B1.306"]],"Ca 2","28/04/2027","TĐ",""],"INB714_262_D02":["Chuyển đổi số",[["C",2,"1-9","B1.301"]],"Ca 2","28/04/2027","TĐ",""],"INB714_262_D03":["Chuyển đổi số",[["C",3,"1-9","B1.302"]],"Ca 2","28/04/2027","TĐ",""],"INE311_262_D01":["Đầu tư quốc tế",[["C",3,"12-20","A305"]],"Ca 1","15/07/2027","TĐ",""],"INE311_262_D02":["Đầu tư quốc tế",[["S",4,"12-20","A302"]],"Ca 1","15/07/2027","TĐ",""],"INB722_262_D01":["Địa chính trị",[["S",4,"1-9","B1.306"]],"Ca 2","28/04/2027","TĐ",""],"INB722_262_D02":["Địa chính trị",[["C",4,"1-9","B1.406"]],"Ca 2","28/04/2027","TĐ",""],"INB712_262_D01":["Giao dịch thương mại quốc tế",[["S",5,"1-9","B1.301"]],"Ca 1","24/04/2027","TĐ",""],"INE306_262_D01":["Kinh doanh quốc tế",[["C",5,"1-9","B1.404"]],"Ca 4","29/04/2027","TĐ",""],"INE306_262_D02":["Kinh doanh quốc tế",[["S",6,"1-8","A308"],["S",4,"8","B1.301"]],"Ca 4","29/04/2027","TĐ",""],"INE306_262_D03":["Kinh doanh quốc tế",[["C",6,"1-8","B1.303"],["C",7,"8","B1.405"]],"Ca 4","29/04/2027","TĐ",""],"MES307_262_D01":["Kinh tế học đầu tư",[["S",7,"1,3-8","B1.206"],["S",4,"7-8","B1.401"]],"Ca 2","24/04/2027","TĐ",""],"MES307_262_D02":["Kinh tế học đầu tư",[["C",7,"1,3-8","B1.306"],["C",3,"8-9","B1.204"]],"Ca 2","24/04/2027","TĐ",""],"INB715_262_D01":["Kinh tế học đổi mới",[["S",2,"1-9","B1.401"]],"Ca 4","26/04/2027","TĐ",""],"INB715_262_D02":["Kinh tế học đổi mới",[["C",2,"1-9","B1.302"]],"Ca 4","26/04/2027","TĐ",""],"INE301_262_D01":["Kinh tế học hội nhập quốc tế",[["C",3,"1-9","A302"]],"Ca 1","22/04/2027","TĐ",""],"INE301_262_D02":["Kinh tế học hội nhập quốc tế",[["S",4,"1-9","A306"]],"Ca 1","22/04/2027","TĐ",""],"MES308_262_D01":["Kinh tế học quản lý",[["C",2,"13-21","B1.205"]],"Ca C3","19/07/2027","TĐ","PM"],"MES302_262_D01":["Kinh tế học vi mô",[["S",4,"1-9","B1.104"]],"Ca C2","27/04/2027","TĐ","PM"],"MES302_262_D02":["Kinh tế học vi mô",[["C",3,"12-20","B1.403"]],"Ca S1","18/07/2027","TĐ","PM"],"MES302_262_D03":["Kinh tế học vi mô",[["C",3,"12-20","B1.103"]],"Ca S1","18/07/2027","TĐ","PM"],"MES302_262_D04":["Kinh tế học vi mô",[["C",2,"1-9","B1.304"]],"Ca C3","28/04/2027","TĐ","PM"],"MES303_262_D02":["Kinh tế học vĩ mô",[["C",3,"1-9","B1.304"]],"Ca C3","28/04/2027","TĐ","PM"],"MES303_262_D03":["Kinh tế học vĩ mô",[["S",4,"1-9","B1.403"]],"Ca C2","28/04/2027","TĐ","PM"],"MES303_262_D04":["Kinh tế học vĩ mô",[["S",5,"12-20","B1.104"]],"Ca C1","18/07/2027","TĐ","PM"],"MES303_262_D05":["Kinh tế học vĩ mô",[["S",5,"12-20","B1.204"]],"Ca C1","18/07/2027","TĐ","PM"],"MES302_262_D05":["Kinh tế học vi mô",[["C",5,"12-20","B1.304"]],"Ca S3","18/07/2027","TĐ","PM"],"MES303_262_D07":["Kinh tế học vĩ mô",[["C",5,"12-20","B1.403"]],"Ca S2","18/07/2027","TĐ","PM"],"MES303_262_D08":["Kinh tế học vĩ mô",[["S",6,"12-16","B1.403"],["S",2,"13-16","A102"]],"Ca S2","18/07/2027","TĐ","PM"],"MES303_262_D09":["Kinh tế học vĩ mô",[["C",6,"12-20","B1.204"]],"Ca C2","18/07/2027","TĐ","PM"],"MES302_262_D06":["Kinh tế học vi mô",[["S",7,"12-15,17-20","B1.304"],["S",6,"20","B1.403"]],"Ca S3","18/07/2027","TĐ","PM"],"MES303_262_D11":["Kinh tế học vĩ mô",[["C",7,"12-15,17-20","B1.104"],["C",6,"20","A004"]],"Ca C2","18/07/2027","TĐ","PM"],"MES302_262_D07":["Kinh tế học vi mô",[["C",7,"12-15,17-20","A204"],["C",6,"20","A204"]],"Ca C2","18/07/2027","TĐ","PM"],"MES303_262_D11_GHÉP":["Kinh tế học vĩ mô",[["C",7,"12-15,17-20","LỚP ẢO"],["C",6,"20","LỚP ẢO"]],"Ca C2","18/07/2027","TĐ","PM"],"MES309_262_D01":["Kinh tế thị trường mới nổi",[["S",4,"1-9","B1.101"]],"Ca S1","23/04/2027","TĐ","PM"],"MES309_262_D02":["Kinh tế thị trường mới nổi",[["C",4,"1-9","A307"]],"Ca S1","23/04/2027","TĐ","PM"],"MES309_262_D03":["Kinh tế thị trường mới nổi",[["S",5,"1-9","A305"]],"Ca S1","23/04/2027","TĐ","PM"],"INE702_262_D01":["Kinh tế vĩ mô 2",[["C",4,"12-20","B1.205"]],"Ca 2","12/07/2027","TĐ",""],"INB726_262_D01":["Logistics 4.0",[["S",5,"12-20","B1.103"]],"Ca 3","15/07/2027","TĐ",""],"INB726_262_D02":["Logistics 4.0",[["C",5,"12-20","B1.301"]],"Ca 3","15/07/2027","TĐ",""],"INB703_262_D01":["Marketing toàn cầu",[["S",6,"12-20","B1.306"]],"Ca 2","14/07/2027","TĐ",""],"INB703_262_D02":["Marketing toàn cầu",[["C",6,"12-20","B1.106"]],"Ca 2","14/07/2027","TĐ",""],"INB719_262_D01":["Nghiên cứu thị trường",[["S",5,"1-9","B1.302"]],"Ca 3","22/04/2027","TĐ",""],"INB719_262_D02":["Nghiên cứu thị trường",[["C",5,"1-9","B1.402"]],"Ca 3","22/04/2027","TĐ",""],"INB719_262_D03":["Nghiên cứu thị trường",[["C",3,"1-9","A104"]],"Ca 3","22/04/2027","TĐ",""],"INB704_262_D01":["Phân tích dữ liệu kinh doanh",[["S",6,"1-8","B1.106"],["S",7,"7","B1.302"]],"Ca 2","22/04/2027","TĐ",""],"INE704_262_D01":["Phương pháp nghiên cứu khoa học",[["S",2,"1-9","A306"]],"Ca C1","29/04/2027","TĐ","PM"],"INE704_262_D02":["Phương pháp nghiên cứu khoa học",[["C",2,"1-9","A307"]],"Ca C1","29/04/2027","TĐ","PM"],"INE704_262_D03":["Phương pháp nghiên cứu khoa học",[["C",3,"1-9","B1.303"]],"Ca C2","29/04/2027","TĐ","PM"],"INE704_262_D04":["Phương pháp nghiên cứu khoa học",[["S",4,"1-9","B1.303"]],"Ca C1","29/04/2027","TĐ","PM"],"INE704_262_D05":["Phương pháp nghiên cứu khoa học",[["C",4,"1-9","B1.302"]],"Ca C2","29/04/2027","TĐ","PM"],"INE704_262_D06":["Phương pháp nghiên cứu khoa học",[["C",6,"1-8","B1.106"],["C",7,"8","B1.305"]],"Ca C2","29/04/2027","TĐ","PM"],"INE704_262_D07":["Phương pháp nghiên cứu khoa học",[["S",7,"1,3-8","A308"],["S",6,"7-8","A101"]],"Ca C1","29/04/2027","TĐ","PM"],"INE704_262_D08":["Phương pháp nghiên cứu khoa học",[["C",7,"1,3-8","B1.106"],["C",6,"7-8","B1.205"]],"Ca C2","29/04/2027","TĐ","PM"],"INB705_262_D01":["Quản trị chuỗi cung ứng quốc tế",[["S",7,"12-15,17-20","B1.103"],["S",4,"20","B1.302"]],"Ca 4","14/07/2027","TĐ",""],"INB706_262_D01":["Quản trị công nghệ và đổi mới",[["C",7,"12-15,17-20","B1.106"],["C",5,"20","A004"]],"Ca 1","15/07/2027","TĐ",""],"INE309_262_D01":["Quản trị dự án quốc tế",[["S",4,"12-20","A203"]],"Ca 3","16/07/2027","TĐ",""],"INB721_262_D01":["Quản trị vận hành và quy trình quốc tế",[["S",2,"13-21","B1.406"]],"Ca 2","17/07/2027","TĐ",""],"INB721_262_D02":["Quản trị vận hành và quy trình quốc tế",[["C",2,"13-21","B1.301"]],"Ca 2","17/07/2027","TĐ",""],"INE307_262_D01":["Tài chính quốc tế",[["S",4,"12-20","B1.303"]],"Ca 2","17/07/2027","TĐ",""],"INE307_262_D02":["Tài chính quốc tế",[["C",4,"12-20","A301"]],"Ca 2","17/07/2027","TĐ",""],"INE307_262_D03":["Tài chính quốc tế",[["S",5,"12-20","B1.203"]],"Ca 2","17/07/2027","TĐ",""],"INE307_262_D04":["Tài chính quốc tế",[["C",5,"12-20","B1.402"]],"Ca 2","17/07/2027","TĐ",""],"INB708_262_D01":["Thủ tục hải quan",[["S",5,"1-9","A004"]],"Ca 3","26/04/2027","TĐ",""],"INB708_262_D02":["Thủ tục hải quan",[["S",2,"1-9","A204"]],"Ca 3","26/04/2027","TĐ",""],"INB727_262_D01":["Ứng dụng Marketing số",[["C",5,"12-20","B1.405"]],"Ca 1","15/07/2027","TĐ",""],"INB728_262_D01":["Vận hành thương mại điện tử",[["C",5,"1-9","B1.104"]],"Ca 2","27/04/2027","TĐ",""],"INB729_262_D01":["Vận tải đa phương thức",[["S",6,"12-20","B1.305"]],"Ca 3","16/07/2027","TĐ",""],"INB711_262_D01":["Vận tải và bảo hiểm trong ngoại thương",[["S",6,"1-8","B1.306"],["S",7,"8","B1.401"]],"Ca S3","27/04/2027","TĐ","PM"],"INB711_262_D02":["Vận tải và bảo hiểm trong ngoại thương",[["C",2,"1-9","A204"]],"Ca S3","27/04/2027","TĐ","PM"],"LAW732_262_D01":["Án lệ trong hệ thống pháp luật Việt Nam",[["S",2,"1-6","A101"]],"Ca 3","26/04/2027","TĐ",""],"LAW333_262_D01":["Công pháp quốc tế",[["S",7,"12-15","B1.406"],["S",3,"14-15","B1.202"]],"Ca 4","17/07/2027","TĐ",""],"LAW333_262_D02":["Công pháp quốc tế",[["C",7,"12-15","B1.302"],["C",3,"14-15","B1.204"]],"Ca 4","17/07/2027","TĐ",""],"LAW716_262_D01":["Kỹ năng đàm phán, soạn thảo hợp đồng",[["C",2,"1-6","B1.405"]],"Ca 1","29/04/2027","TĐ",""],"LAW716_262_D02":["Kỹ năng đàm phán, soạn thảo hợp đồng",[["S",3,"1-6","B1.405"]],"Ca 1","29/04/2027","TĐ",""],"LAW716_262_D03":["Kỹ năng đàm phán, soạn thảo hợp đồng",[["C",3,"1-6","B1.402"]],"Ca 1","29/04/2027","TĐ",""],"LAW716_262_D04":["Kỹ năng đàm phán, soạn thảo hợp đồng",[["S",6,"12-17","B1.404"]],"Ca 3","15/07/2027","TĐ",""],"LAW715_262_D01":["Kỹ năng giải quyết tranh chấp kinh doanh",[["S",6,"1-6","B1.302"]],"Ca 1","26/04/2027","TĐ",""],"LAW715_262_D02":["Kỹ năng giải quyết tranh chấp kinh doanh",[["C",6,"1-6","B1.306"]],"Ca 1","26/04/2027","TĐ",""],"LAW715_262_D03":["Kỹ năng giải quyết tranh chấp kinh doanh",[["S",7,"1,3-7","B1.306"]],"Ca 1","26/04/2027","TĐ",""],"LAW715_262_D04":["Kỹ năng giải quyết tranh chấp kinh doanh",[["C",7,"1,3-7","B1.406"]],"Ca 1","26/04/2027","TĐ",""],"LAW714_262_D01":["Kỹ năng tư vấn pháp luật trong doanh nghiệp",[["C",4,"12-17","B1.305"]],"Ca 2","15/07/2027","TĐ",""],"LAW714_262_D02":["Kỹ năng tư vấn pháp luật trong doanh nghiệp",[["S",6,"12-17","B1.204"]],"Ca 2","15/07/2027","TĐ",""],"LAW714_262_D03":["Kỹ năng tư vấn pháp luật trong doanh nghiệp",[["C",5,"12-17","A104"]],"Ca 2","15/07/2027","TĐ",""],"LAW714_262_D04":["Kỹ năng tư vấn pháp luật trong doanh nghiệp",[["C",6,"12-17","B1.306"]],"Ca 2","15/07/2027","TĐ",""],"LAW791_262_D01":["Lịch sử Nhà nước và Pháp luật",[["S",6,"12-16","A202"],["S",2,"16","A203"]],"Ca 2","12/07/2027","TĐ",""],"LAW791_262_D02":["Lịch sử Nhà nước và Pháp luật",[["C",6,"12-16","A201"],["C",2,"16","A201"]],"Ca 2","12/07/2027","TĐ",""],"LAW791_262_D03":["Lịch sử Nhà nước và Pháp luật",[["S",7,"12-15","B1.301"],["S",2,"14-15","B1.404"]],"Ca 2","12/07/2027","TĐ",""],"LAW791_262_D04":["Lịch sử Nhà nước và Pháp luật",[["C",7,"12-15","B1.305"],["C",2,"14-15","B1.202"]],"Ca 2","12/07/2027","TĐ",""],"LAW719_262_D01":["Luật an sinh xã hội",[["C",6,"1-6","B1.406"]],"Ca 3","26/04/2027","TĐ",""],"LAW719_262_D02":["Luật an sinh xã hội",[["C",4,"1-6","A202"]],"Ca 3","26/04/2027","TĐ",""],"LAW710_262_D01":["Luật cạnh tranh",[["S",2,"1-9","A308"]],"Ca 3","29/04/2027","TĐ",""],"LAW710_262_D02":["Luật cạnh tranh",[["C",2,"1-9","A305"]],"Ca 3","29/04/2027","TĐ",""],"LAW710_262_D03":["Luật cạnh tranh",[["S",3,"1-9","A306"]],"Ca 3","29/04/2027","TĐ",""],"LAW710_262_D04":["Luật cạnh tranh",[["S",5,"1-9","B1.303"]],"Ca 3","29/04/2027","TĐ",""],"LAW710_262_D05":["Luật cạnh tranh",[["C",5,"1-9","B1.106"]],"Ca 3","29/04/2027","TĐ",""],"LAW306_262_D01":["Luật dân sự 1",[["C",3,"1-9","A306"]],"Ca S3","27/04/2027","TĐ","PM"],"LAW306_262_D02":["Luật dân sự 1",[["C",4,"1-9","B1.401"]],"Ca S3","27/04/2027","TĐ","PM"],"LAW306_262_D03":["Luật dân sự 1",[["S",5,"1-9","B1.306"]],"Ca S3","27/04/2027","TĐ","PM"],"LAW306_262_D04":["Luật dân sự 1",[["C",5,"1-9","B1.405"]],"Ca S3","27/04/2027","TĐ","PM"],"LAW336_262_D01":["Luật đất đai",[["S",6,"1-8","A306"],["S",2,"8","B1.304"]],"Ca 2","28/04/2027","TĐ",""],"LAW336_262_D02":["Luật đất đai",[["C",6,"1-8","A307"],["C",7,"8","B1.302"]],"Ca 2","28/04/2027","TĐ",""],"LAW722_262_D01":["Luật đầu tư",[["S",2,"13-21","B1.103"]],"Ca 3","16/07/2027","TĐ",""],"LAW722_262_D02":["Luật đầu tư",[["C",3,"12-20","B1.106"]],"Ca 3","16/07/2027","TĐ",""],"LAW722_262_D03":["Luật đầu tư",[["C",4,"12-20","B1.103"]],"Ca 3","16/07/2027","TĐ",""],"LAW308_262_D01":["Luật hành chính",[["S",2,"1-9","B1.303"]],"Ca 4","28/04/2027","TĐ",""],"LAW308_262_D02":["Luật hành chính",[["C",2,"1-9","B1.406"]],"Ca 4","28/04/2027","TĐ",""],"LAW308_262_D03":["Luật hành chính",[["S",7,"1,3-8","A307"],["S",6,"7-8","B1.405"]],"Ca 4","28/04/2027","TĐ",""],"LAW308_262_D04":["Luật hành chính",[["C",7,"1,3-8","B1.303"],["C",3,"7-8","B1.104"]],"Ca 4","28/04/2027","TĐ",""],"LAW309_262_D01":["Luật hình sự",[["S",3,"1-9","B1.203"]],"Ca 3","24/04/2027","TĐ",""],"LAW309_262_D02":["Luật hình sự",[["C",3,"1-9","B1.406"]],"Ca 3","24/04/2027","TĐ",""],"LAW309_262_D03":["Luật hình sự",[["C",4,"1-9","B1.306"]],"Ca 3","24/04/2027","TĐ",""],"LAW309_262_D04":["Luật hình sự",[["S",5,"1-9","B1.402"]],"Ca 3","24/04/2027","TĐ",""],"LAW304_262_D01":["Luật kinh doanh",[["C",5,"1-9","B1.305"]],"Ca C3","27/04/2027","TĐ","PM"],"LAW304_262_D02":["Luật kinh doanh",[["S",6,"1-8","B1.103"],["S",3,"8","B1.304"]],"Ca C2","27/04/2027","TĐ","PM"],"LAW304_262_D03":["Luật kinh doanh",[["C",6,"1-8","B1.103"],["C",3,"8","B1.402"]],"Ca C2","27/04/2027","TĐ","PM"],"LAW304_262_D04":["Luật kinh doanh",[["S",7,"1,3-8","B1.103"],["S",5,"7-8","A101"]],"Ca C3","27/04/2027","TĐ","PM"],"LAW304_262_D05":["Luật kinh doanh",[["C",7,"1,3-8","B1.203"],["C",6,"7-8","B1.305"]],"Ca C2","27/04/2027","TĐ","PM"],"LAW304_262_D06":["Luật kinh doanh",[["S",2,"13-21","B1.303"]],"Ca S2","14/07/2027","TĐ","PM"],"LAW304_262_D07":["Luật kinh doanh",[["C",2,"13-21","B1.401"]],"Ca S3","14/07/2027","TĐ","PM"],"LAW304_262_D08":["Luật kinh doanh",[["C",2,"13-21","A302"]],"Ca S3","14/07/2027","TĐ","PM"],"LAW304_262_D09":["Luật kinh doanh",[["S",3,"12-20","A308"]],"Ca S3","14/07/2027","TĐ","PM"],"LAW304_262_D10":["Luật kinh doanh",[["C",3,"12-20","A306"]],"Ca S3","14/07/2027","TĐ","PM"],"LAW304_262_D11":["Luật kinh doanh",[["C",4,"12-20","B1.206"]],"Ca S2","14/07/2027","TĐ","PM"],"LAW725_262_D01":["Luật kinh doanh bảo hiểm",[["C",5,"1-6","A202"]],"Ca 3","20/04/2027","TĐ",""],"LAW712_262_D01":["Luật môi trường",[["S",2,"1-9","B1.103"]],"Ca 1","28/04/2027","TĐ",""],"LAW712_262_D02":["Luật môi trường",[["C",2,"1-9","A306"]],"Ca 1","28/04/2027","TĐ",""],"LAW712_262_D03":["Luật môi trường",[["S",3,"1-9","A307"]],"Ca 1","28/04/2027","TĐ",""],"LAW712_262_D04":["Luật môi trường",[["C",3,"1-9","A305"]],"Ca 1","28/04/2027","TĐ",""],"LAW712_262_D05":["Luật môi trường",[["C",4,"1-9","B1.206"]],"Ca 1","28/04/2027","TĐ",""],"LAW317_262_D01":["Luật ngân hàng",[["S",5,"12-20","A307"]],"Ca 4","15/07/2027","TĐ",""],"LAW317_262_D02":["Luật ngân hàng",[["C",5,"12-20","B1.203"]],"Ca 4","15/07/2027","TĐ",""],"LAW318_262_D01":["Luật sở hữu trí tuệ",[["S",2,"13-21","A307"]],"Ca 1","17/07/2027","TĐ",""],"LAW318_262_D02":["Luật sở hữu trí tuệ",[["C",2,"13-21","B1.106"]],"Ca 1","17/07/2027","TĐ",""],"LAW318_262_D03":["Luật sở hữu trí tuệ",[["S",3,"12-20","A202"]],"Ca 1","17/07/2027","TĐ",""],"LAW318_262_D04":["Luật sở hữu trí tuệ",[["S",7,"12-15,17-20","A306"],["S",3,"20","B1.402"]],"Ca 1","17/07/2027","TĐ",""],"LAW318_262_D05":["Luật sở hữu trí tuệ",[["C",7,"12-15,17-20","A307"],["C",3,"20","B1.105"]],"Ca 1","17/07/2027","TĐ",""],"LAW321_262_D01":["Luật tố tụng dân sự",[["S",2,"1-9","B1.106"]],"Ca S3","24/04/2027","TĐ","PM"],"LAW321_262_D02":["Luật tố tụng dân sự",[["S",5,"1-9","B1.406"]],"Ca S2","24/04/2027","TĐ","PM"],"LAW321_262_D03":["Luật tố tụng dân sự",[["C",5,"1-9","B1.203"]],"Ca S2","24/04/2027","TĐ","PM"],"LAW321_262_D04":["Luật tố tụng dân sự",[["S",6,"1-8","A307"],["S",2,"9","B1.202"]],"Ca S2","24/04/2027","TĐ","PM"],"LAW321_262_D05":["Luật tố tụng dân sự",[["S",3,"1-9","A308"]],"Ca S3","24/04/2027","TĐ","PM"],"LAW321_262_D06":["Luật tố tụng dân sự",[["S",7,"1,3-8","A306"],["S",6,"7-8","B1.302"]],"Ca S2","24/04/2027","TĐ","PM"],"LAW321_262_D07":["Luật tố tụng dân sự",[["C",7,"1,3-8","A307"],["C",4,"8-9","B1.301"]],"Ca S3","24/04/2027","TĐ","PM"],"LAW342_262_D01":["Pháp luật kinh doanh bất động sản",[["C",2,"13-21","B1.103"]],"Ca 2","12/07/2027","TĐ",""],"LAW342_262_D02":["Pháp luật kinh doanh bất động sản",[["C",3,"12-20","B1.203"]],"Ca 2","12/07/2027","TĐ",""],"LAW342_262_D03":["Pháp luật kinh doanh bất động sản",[["C",4,"12-20","B1.106"]],"Ca 2","12/07/2027","TĐ",""],"LAW713_262_D01":["Pháp luật về bảo đảm tín dụng",[["C",2,"1-9","B1.103"]],"Ca 3","23/04/2027","TĐ",""],"LAW713_262_D02":["Pháp luật về bảo đảm tín dụng",[["S",3,"1-9","B1.103"]],"Ca 3","23/04/2027","TĐ",""],"LAW713_262_D03":["Pháp luật về bảo đảm tín dụng",[["C",3,"1-9","B1.103"]],"Ca 3","23/04/2027","TĐ",""],"LAW727_262_D01":["Pháp luật về quyền con người",[["C",4,"12-16","B1.402"],["C",6,"16","A202"]],"Ca 3","14/07/2027","TĐ",""],"LAW727_262_D02":["Pháp luật về quyền con người",[["S",5,"12-16","B1.402"],["S",3,"15","A101"]],"Ca 3","14/07/2027","TĐ",""],"LAW727_262_D03":["Pháp luật về quyền con người",[["C",5,"12-16","A204"],["C",3,"15","A202"]],"Ca 3","14/07/2027","TĐ",""],"LAW727_262_D04":["Pháp luật về quyền con người",[["S",6,"12-16","A204"],["S",2,"14","A103"]],"Ca 3","14/07/2027","TĐ",""],"LAW734_262_D01":["Pháp luật về tổ chức và hoạt động của chính quyền địa phương",[["C",6,"12-17","B1.303"]],"Ca 1","19/07/2027","TĐ",""],"LAW731_262_D01":["Soạn thảo văn bản hành chính",[["C",4,"1-6","B1.405"]],"Ca 3","22/04/2027","TĐ",""],"LAW731_262_D02":["Soạn thảo văn bản hành chính",[["S",5,"1-6","A101"]],"Ca 3","22/04/2027","TĐ",""],"LAW733_262_D01":["Soạn thảo văn bản pháp luật",[["S",7,"12-15,17-18","B1.206"]],"Ca 1","17/07/2027","TĐ",""],"LAW733_262_D02":["Soạn thảo văn bản pháp luật",[["C",7,"12-15,17-18","B1.301"]],"Ca 1","17/07/2027","TĐ",""],"LAW726_262_D01":["Tội phạm kinh tế & Pháp luật phòng chống tham nhũng",[["C",5,"1-6","A004"]],"Ca 2","22/04/2027","TĐ",""],"LAW726_262_D02":["Tội phạm kinh tế & Pháp luật phòng chống tham nhũng",[["S",6,"1-6","B1.406"]],"Ca 2","22/04/2027","TĐ",""],"LAW726_262_D03":["Tội phạm kinh tế & Pháp luật phòng chống tham nhũng",[["C",6,"1-6","B1.202"]],"Ca 2","22/04/2027","TĐ",""],"LAW726_262_D04":["Tội phạm kinh tế & Pháp luật phòng chống tham nhũng",[["S",7,"1,3-7","B1.406"]],"Ca 2","22/04/2027","TĐ",""],"LAW348_262_D01":["Tư pháp quốc tế",[["C",2,"13-21","B1.206"]],"Ca 1","14/07/2027","TĐ",""],"LAW348_262_D02":["Tư pháp quốc tế",[["S",3,"12-20","B1.106"]],"Ca 1","14/07/2027","TĐ",""],"LAW348_262_D03":["Tư pháp quốc tế",[["C",3,"12-20","B1.303"]],"Ca 1","14/07/2027","TĐ",""],"LAW348_262_D04":["Tư pháp quốc tế",[["C",4,"12-20","A308"]],"Ca 1","14/07/2027","TĐ",""],"LAW348_262_D05":["Tư pháp quốc tế",[["S",5,"12-20","A306"]],"Ca 1","14/07/2027","TĐ",""],"LAW348_262_D06":["Tư pháp quốc tế",[["C",5,"12-20","B1.106"]],"Ca 1","14/07/2027","TĐ",""],"LAW348_262_D07":["Tư pháp quốc tế",[["S",6,"12-20","B1.206"]],"Ca 1","14/07/2027","TĐ",""],"BAF713_262_D01":["Cấu trúc dữ liệu tài chính và giải thuật",[["S",4,"12-20","A301"]],"Ca 4","15/07/2027","TĐ",""],"BAF731_262_D01":["Chuỗi khối và tiền mã hóa",[["S",3,"1-9","A301"]],"Ca 4","29/04/2027","TĐ",""],"BAF716_262_D01":["Công nghệ quản lý và giám sát trong ngân hàng",[["S",3,"12-20","B1.406"]],"Ca 2","17/07/2027","TĐ",""],"BAF716_262_D02":["Công nghệ quản lý và giám sát trong ngân hàng",[["C",3,"12-20","B1.302"]],"Ca 2","17/07/2027","TĐ",""],"BAF301_262_D01":["Hoạt động kinh doanh ngân hàng",[["C",2,"1-9","B1.403"]],"Ca S2","28/04/2027","TĐ","PM"],"BAF301_262_D02":["Hoạt động kinh doanh ngân hàng",[["S",4,"1-9","B1.203"]],"Ca S1","28/04/2027","TĐ","PM"],"BAF301_262_D03":["Hoạt động kinh doanh ngân hàng",[["C",4,"1-9","A306"]],"Ca S1","28/04/2027","TĐ","PM"],"BAF301_262_D04":["Hoạt động kinh doanh ngân hàng",[["S",5,"1-9","B1.206"]],"Ca S2","28/04/2027","TĐ","PM"],"BAF301_262_D05":["Hoạt động kinh doanh ngân hàng",[["C",5,"1-9","A301"]],"Ca S2","28/04/2027","TĐ","PM"],"BAF301_262_D06":["Hoạt động kinh doanh ngân hàng",[["S",6,"1-8","A302"],["S",7,"8","B1.306"]],"Ca S1","28/04/2027","TĐ","PM"],"BAF735_262_D01":["Khởi nghiệp trong công nghệ tài chính",[["S",4,"12-20","B1.201"]],"Ca 1","12/07/2027","TĐ",""],"BAF724_262_D01":["Lập trình Python trong tài chính ngân hàng",[["C",2,"1-9","B1.303"]],"Ca 4","22/04/2027","TĐ",""],"BAF724_262_D02":["Lập trình Python trong tài chính ngân hàng",[["S",7,"1,3-8","B1.203"],["S",5,"7-8","A102"]],"Ca 4","22/04/2027","TĐ",""],"BAF724_262_D03":["Lập trình Python trong tài chính ngân hàng",[["C",7,"1,3-8","A305"],["C",5,"8-9","A004"]],"Ca 4","22/04/2027","TĐ",""],"BAF726_262_D01":["Marketing số dịch vụ ngân hàng",[["C",4,"12-20","B1.406"]],"Ca S1","16/07/2027","TĐ","PM"],"BAF734_262_D01":["Ngân hàng số",[["S",5,"12-20","B1.206"]],"Ca 4","13/07/2027","TĐ",""],"BAF704_262_D01":["Phái sinh tiền tệ",[["C",5,"12-20","B1.103"]],"Ca 4","15/07/2027","TĐ",""],"BAF729_262_D01":["Phương pháp nghiên cứu trong công nghệ tài chính",[["S",3,"1-9","B1.406"]],"Ca 2","24/04/2027","TĐ",""],"BAF729_262_D02":["Phương pháp nghiên cứu trong công nghệ tài chính",[["C",3,"1-9","B1.206"]],"Ca 2","24/04/2027","TĐ",""],"MAG310_262_D01":["Quản trị ngân hàng thương mại",[["C",2,"13-21","A301"]],"Ca S1","12/07/2027","TĐ","PM"],"MAG310_262_D02":["Quản trị ngân hàng thương mại",[["S",6,"12-20","A301"]],"Ca S1","12/07/2027","TĐ","PM"],"MAG310_262_D03":["Quản trị ngân hàng thương mại",[["C",6,"12-20","B1.206"]],"Ca S2","12/07/2027","TĐ","PM"],"MAG310_262_D04":["Quản trị ngân hàng thương mại",[["S",7,"12-15,17-20","B1.106"],["S",4,"20","B1.305"]],"Ca S2","12/07/2027","TĐ","PM"],"MAG310_262_D05":["Quản trị ngân hàng thương mại",[["C",7,"12-15,17-20","A301"],["C",4,"20","B1.404"]],"Ca S1","12/07/2027","TĐ","PM"],"BAF310_262_D01":["Quản trị rủi ro ngân hàng",[["S",4,"1-9","B1.304"]],"Ca S1","25/04/2027","TĐ","PM"],"BAF310_262_D02":["Quản trị rủi ro ngân hàng",[["C",4,"1-9","B1.304"]],"Ca S1","25/04/2027","TĐ","PM"],"BAF305_262_D01":["Tài trợ dự án",[["S",5,"1-9","B1.304"]],"Ca C1","23/04/2027","TĐ","PM"],"BAF305_262_D02":["Tài trợ dự án",[["C",5,"1-9","B1.304"]],"Ca C1","23/04/2027","TĐ","PM"],"BAF306_262_D01":["Thẩm định giá tài sản",[["S",3,"12-20","B1.304"]],"Ca C1","16/07/2027","TĐ","PM"],"BAF306_262_D02":["Thẩm định giá tài sản",[["C",3,"12-20","B1.304"]],"Ca C1","16/07/2027","TĐ","PM"],"BAF307_262_D01":["Thanh toán quốc tế",[["S",4,"12-20","B1.202"]],"Ca 2","14/07/2027","TĐ",""],"ACC717_262_D02":["Kế toán điều tra",[["S",6,"12-20","A102"]],"Ca 1","20/07/2027","TĐ",""],"BAF307_262_D03":["Thanh toán quốc tế",[["C",5,"12-20","B1.406"]],"Ca 2","14/07/2027","TĐ",""],"BAF307_262_D04":["Thanh toán quốc tế",[["S",6,"12-20","B1.401"]],"Ca 2","14/07/2027","TĐ",""],"BAF307_262_D05":["Thanh toán quốc tế",[["S",6,"12-20","B1.302"]],"Ca 2","14/07/2027","TĐ",""],"BAF736_262_D01":["Tiền tệ, Ngân hàng và công nghệ tài chính",[["S",4,"1-9","B1.105"]],"Ca S2","26/04/2027","TĐ","PM"],"BAF736_262_D02":["Tiền tệ, Ngân hàng và công nghệ tài chính",[["S",4,"1-9","B1.201"]],"Ca S2","26/04/2027","TĐ","PM"],"BAF736_262_D03":["Tiền tệ, Ngân hàng và công nghệ tài chính",[["S",6,"1-8","B1.203"],["S",7,"8","B1.302"]],"Ca S1","26/04/2027","TĐ","PM"],"BAF736_262_D04":["Tiền tệ, Ngân hàng và công nghệ tài chính",[["C",6,"1-8","A305"],["C",2,"8","B1.201"]],"Ca S1","26/04/2027","TĐ","PM"],"BAF736_262_D05":["Tiền tệ, Ngân hàng và công nghệ tài chính",[["C",6,"1-8","A306"],["C",2,"8","B1.205"]],"Ca S1","26/04/2027","TĐ","PM"],"BAF736_262_D06":["Tiền tệ, Ngân hàng và công nghệ tài chính",[["C",2,"13-21","A308"]],"Ca C1","14/07/2027","TĐ","PM"],"BAF736_262_D07":["Tiền tệ, Ngân hàng và công nghệ tài chính",[["S",3,"16-20","B1.405"],["S",7,"17-20","B1.405"]],"Ca C3","14/07/2027","TĐ","PM"],"BAF736_262_D08":["Tiền tệ, Ngân hàng và công nghệ tài chính",[["C",3,"12-20","B1.205"]],"Ca C2","14/07/2027","TĐ","PM"],"BAF736_262_D09":["Tiền tệ, Ngân hàng và công nghệ tài chính",[["S",4,"12-20","A308"]],"Ca C1","14/07/2027","TĐ","PM"],"BAF736_262_D10":["Tiền tệ, Ngân hàng và công nghệ tài chính",[["C",4,"12-20","A305"]],"Ca C2","14/07/2027","TĐ","PM"],"BAF736_262_D11":["Tiền tệ, Ngân hàng và công nghệ tài chính",[["C",5,"12-20","A307"]],"Ca C2","14/07/2027","TĐ","PM"],"BAF736_262_D12":["Tiền tệ, Ngân hàng và công nghệ tài chính",[["S",6,"12-20","A308"]],"Ca C1","14/07/2027","TĐ","PM"],"BAF736_262_D13":["Tiền tệ, Ngân hàng và công nghệ tài chính",[["C",6,"12-20","B1.104"]],"Ca C3","14/07/2027","TĐ","PM"],"BAF736_262_D14":["Tiền tệ, Ngân hàng và công nghệ tài chính",[["S",7,"17-20","B1.303"],["S",4,"16-20","B1.402"]],"Ca C3","14/07/2027","TĐ","PM"],"BAF736_262_D15":["Tiền tệ, Ngân hàng và công nghệ tài chính",[["C",7,"12-15,17-20","A308"],["C",2,"18","A201"]],"Ca C2","14/07/2027","TĐ","PM"],"BAF308_262_D01":["Tín dụng ngân hàng",[["C",4,"1-9","B1.106"]],"Ca C1","28/04/2027","TĐ","PM"],"BAF308_262_D02":["Tín dụng ngân hàng",[["S",6,"12-20","A302"]],"Ca S2","15/07/2027","TĐ","PM"],"BAF308_262_D03":["Tín dụng ngân hàng",[["C",6,"12-20","A301"]],"Ca S2","15/07/2027","TĐ","PM"],"BAF308_262_D04":["Tín dụng ngân hàng",[["S",7,"12-15,17-20","A301"],["S",4,"20","B1.404"]],"Ca S2","15/07/2027","TĐ","PM"],"BAF709_262_D01":["Trí tuệ nhân tạo trong giao dịch định lượng",[["C",2,"13-21","A306"]],"Ca 1","15/07/2027","TĐ",""],"BAF709_262_D02":["Trí tuệ nhân tạo trong giao dịch định lượng",[["C",7,"12-15,17-20","B1.303"],["C",5,"20","A104"]],"Ca 1","15/07/2027","TĐ",""],"BAF732_262_D01":["Ứng dụng chuỗi khối trong lĩnh vực tài chính ngân hàng",[["S",5,"1-9","B1.405"]],"Ca 2","26/04/2027","TĐ",""],"BAF733_262_D01":["Ứng dụng học máy trong lĩnh vực tài chính ngân hàng",[["C",5,"1-9","B1.204"]],"Ca 1","27/04/2027","TĐ",""],"ENB321_262_D01":["Biên dịch thương mại Việt - Anh",[["C",4,"1-9","B1.202"]],"Ca 2","29/04/2027","TĐ",""],"ENB321_262_D02":["Biên dịch thương mại Việt - Anh",[["S",5,"1-9","B1.202"]],"Ca 2","29/04/2027","TĐ",""],"ENB321_262_D03":["Biên dịch thương mại Việt - Anh",[["C",5,"1-9","B1.301"]],"Ca 2","29/04/2027","TĐ",""],"ELI703_262_D01":["Cú pháp học",[["S",2,"13-18","B1.205"]],"Ca 2","12/07/2027","TĐ",""],"ELI703_262_D02":["Cú pháp học",[["S",2,"13-18","B1.301"]],"Ca 2","12/07/2027","TĐ",""],"ELI703_262_D03":["Cú pháp học",[["C",7,"12-15,17-18","B1.202"]],"Ca 2","12/07/2027","TĐ",""],"SOC309_262_D01":["Dẫn luận văn học Anh - Mỹ",[["S",2,"1-9","B1.201"]],"Ca 4","27/04/2027","TĐ",""],"SOC309_262_D02":["Dẫn luận văn học Anh - Mỹ",[["C",3,"1-9","B1.202"]],"Ca 4","27/04/2027","TĐ",""],"SOC309_262_D03":["Dẫn luận văn học Anh - Mỹ",[["C",3,"1-9","B1.205"]],"Ca 4","27/04/2027","TĐ",""],"SOC309_262_D04":["Dẫn luận văn học Anh - Mỹ",[["S",6,"1-8","B1.205"],["S",7,"8","B1.301"]],"Ca 4","27/04/2027","TĐ",""],"SOC309_262_D05":["Dẫn luận văn học Anh - Mỹ",[["C",6,"1-8","B1.105"],["C",7,"8","B1.301"]],"Ca 4","27/04/2027","TĐ",""],"ENP715_262_D01":["Giao tiếp liên văn hóa trong kinh doanh",[["C",3,"12-20","B1.102"]],"Ca 3","16/07/2027","TĐ",""],"ENP715_262_D02":["Giao tiếp liên văn hóa trong kinh doanh",[["C",4,"12-20","B1.105"]],"Ca 3","16/07/2027","TĐ",""],"ELI701_262_D01":["Ngữ âm – Âm vị học",[["S",5,"12-20","B1.205"]],"Ca 4","15/07/2027","TĐ",""],"ELI701_262_D02":["Ngữ âm – Âm vị học",[["C",5,"12-20","B1.202"]],"Ca 4","15/07/2027","TĐ",""],"ELI701_262_D03":["Ngữ âm – Âm vị học",[["S",6,"12-20","B1.205"]],"Ca 4","15/07/2027","TĐ",""],"ELI701_262_D04":["Ngữ âm – Âm vị học",[["C",6,"12-20","B1.201"]],"Ca 4","15/07/2027","TĐ",""],"ELI305_262_D01":["Ngữ nghĩa học",[["C",2,"1-6","B1.205"]],"Ca 2","22/04/2027","TĐ",""],"ELI305_262_D02":["Ngữ nghĩa học",[["S",7,"1,3-7","B1.202"]],"Ca 2","22/04/2027","TĐ",""],"ELI305_262_D03":["Ngữ nghĩa học",[["C",7,"1,3-7","B1.205"]],"Ca 2","22/04/2027","TĐ",""],"CNL311_262_D01":["Ngữ pháp thực hành tiếng Trung Quốc",[["S",2,"13-21","B1.201"]],"Ca 2","16/07/2027","TĐ",""],"CNL311_262_D02":["Ngữ pháp thực hành tiếng Trung Quốc",[["C",2,"16-21","B1.202"],["C",4,"18-20","B1.305"]],"Ca 2","16/07/2027","TĐ",""],"CNL311_262_D03":["Ngữ pháp thực hành tiếng Trung Quốc",[["S",3,"16-20","B1.201"],["S",5,"17-20","B1.402"]],"Ca 2","16/07/2027","TĐ",""],"CNL311_262_D04":["Ngữ pháp thực hành tiếng Trung Quốc",[["S",7,"12-15,17-20","B1.202"],["S",2,"20","B1.304"]],"Ca 2","16/07/2027","TĐ",""],"CNL311_262_D05":["Ngữ pháp thực hành tiếng Trung Quốc",[["C",7,"17-20","B1.205"],["C",3,"16-20","A102"]],"Ca 2","16/07/2027","TĐ",""],"ENB305_262_D01":["Phiên dịch thương mại",[["S",5,"12-20","B1.201"]],"Ca S3","15/07/2027","TĐ","PM"],"ENB305_262_D02":["Phiên dịch thương mại",[["S",5,"12-20","B1.202"]],"Ca S3","15/07/2027","TĐ","PM"],"ENB305_262_D03":["Phiên dịch thương mại",[["C",5,"12-20","B1.201"]],"Ca S3","15/07/2027","TĐ","PM"],"ENB305_262_D04":["Phiên dịch thương mại",[["S",6,"12-20","B1.201"]],"Ca S3","15/07/2027","TĐ","PM"],"ENB305_262_D05":["Phiên dịch thương mại",[["S",6,"12-20","B1.202"]],"Ca S3","15/07/2027","TĐ","PM"],"EME701_262_D01":["Phương pháp giảng dạy Tiếng Anh 1",[["C",4,"1-9","B1.205"]],"Ca 3","23/04/2027","TĐ",""],"EME701_262_D02":["Phương pháp giảng dạy Tiếng Anh 1",[["S",5,"1-9","B1.205"]],"Ca 3","23/04/2027","TĐ",""],"EME702_262_D01":["Phương pháp giảng dạy Tiếng Anh 2",[["C",6,"12-20","B1.205"]],"Ca 3","16/07/2027","TĐ",""],"EME702_262_D02":["Phương pháp giảng dạy Tiếng Anh 2",[["S",7,"12-15,17-20","B1.201"],["S",2,"20","B1.301"]],"Ca 3","16/07/2027","TĐ",""],"ENP709_262_D01":["Tiếng anh - Nói nâng cao",[["C",5,"1-6","B1.302"]],"Ca 2","22/04/2027","TĐ",""],"ENP709_262_D02":["Tiếng anh - Nói nâng cao",[["S",6,"1-6","B1.301"]],"Ca 2","22/04/2027","TĐ",""],"ENP709_262_D03":["Tiếng anh - Nói nâng cao",[["C",6,"1-6","B1.201"]],"Ca 2","22/04/2027","TĐ",""],"ENS307_262_D01":["Tiếng Anh 2 - Đọc 2",[["S",2,"1-9","B1.105"]],"Ca 4","29/04/2027","TĐ",""],"ENS307_262_D02":["Tiếng Anh 2 - Đọc 2",[["S",7,"1,3-8","B1.105"],["S",2,"7-8","B1.205"]],"Ca 4","29/04/2027","TĐ",""],"ENS307_262_D03":["Tiếng Anh 2 - Đọc 2",[["C",7,"1,3-8","B1.201"],["C",2,"7-8","B1.202"]],"Ca 4","29/04/2027","TĐ",""],"ENP775_262_D01":["Tiếng Anh 2 - Nghe - Nói 2",[["C",2,"1-9","B1.101"]],"Ca C1","28/04/2027","TĐ","PM"],"ENP775_262_D02":["Tiếng Anh 2 - Nghe - Nói 2",[["S",3,"1-9","B1.105"]],"Ca C1","28/04/2027","TĐ","PM"],"ENP775_262_D03":["Tiếng Anh 2 - Nghe - Nói 2",[["C",3,"1-9","B1.105"]],"Ca C1","28/04/2027","TĐ","PM"],"ENP775_262_D04":["Tiếng Anh 2 - Nghe - Nói 2",[["C",4,"1-9","B1.105"]],"Ca C1","28/04/2027","TĐ","PM"],"ENS308_262_D01":["Tiếng Anh 2 - Viết 2",[["S",5,"1-9","B1.201"]],"Ca 4","24/04/2027","TĐ",""],"ENS308_262_D02":["Tiếng Anh 2 - Viết 2",[["C",5,"1-9","B1.205"]],"Ca 4","24/04/2027","TĐ",""],"ENS308_262_D03":["Tiếng Anh 2 - Viết 2",[["S",6,"1-8","B1.202"],["S",7,"8","B1.202"]],"Ca 4","24/04/2027","TĐ",""],"ENS315_262_D01":["Tiếng Anh 4 - Đọc 4",[["C",4,"1-9","B1.102"]],"Ca 3","29/04/2027","TĐ",""],"ENS315_262_D02":["Tiếng Anh 4 - Đọc 4",[["C",6,"1-8","B1.102"],["C",7,"8","B1.205"]],"Ca 3","29/04/2027","TĐ",""],"ENS315_262_D03":["Tiếng Anh 4 - Đọc 4",[["S",7,"1,3-8","B1.102"],["S",6,"7-8","B1.301"]],"Ca 3","29/04/2027","TĐ",""],"ENS315_262_D04":["Tiếng Anh 4 - Đọc 4",[["C",7,"1,3-8","B1.105"],["C",6,"7-8","B1.202"]],"Ca 3","29/04/2027","TĐ",""],"ENP751_262_D01":["Tiếng Anh 4 - Nghe-Nói 4",[["S",2,"1-9","C305"]],"Ca C3","24/04/2027","TĐ","PM"],"ENP751_262_D02":["Tiếng Anh 4 - Nghe-Nói 4",[["C",2,"1-9","C301"]],"Ca C3","24/04/2027","TĐ","PM"],"ENP751_262_D03":["Tiếng Anh 4 - Nghe-Nói 4",[["S",3,"1-9","C205"]],"Ca C3","24/04/2027","TĐ","PM"],"ENP751_262_D04":["Tiếng Anh 4 - Nghe-Nói 4",[["C",3,"1-9","C205"]],"Ca C3","24/04/2027","TĐ","PM"],"ENL701_262_D01":["Tiếng Anh chuyên ngành 1",[["S",2,"1-6","B1.202"]],"Ca C3","23/04/2027","TĐ","PM"],"ENL701_262_D02":["Tiếng Anh chuyên ngành 1",[["C",2,"1-6","B1.201"]],"Ca C3","23/04/2027","TĐ","PM"],"ENL701_262_D03":["Tiếng Anh chuyên ngành 1",[["S",3,"1-6","B1.202"]],"Ca C2","23/04/2027","TĐ","PM"],"ENL701_262_D04":["Tiếng Anh chuyên ngành 1",[["C",3,"1-6","B1.301"]],"Ca C2","23/04/2027","TĐ","PM"],"ENL701_262_D05":["Tiếng Anh chuyên ngành 1",[["C",4,"1-6","B1.301"]],"Ca C2","23/04/2027","TĐ","PM"],"ENL701_262_D06":["Tiếng Anh chuyên ngành 1",[["S",2,"13-18","B1.202"]],"Ca C2","17/07/2027","TĐ","PM"],"ENL701_262_D07":["Tiếng Anh chuyên ngành 1",[["C",2,"13-18","B1.201"]],"Ca C2","17/07/2027","TĐ","PM"],"ENL701_262_D08":["Tiếng Anh chuyên ngành 1",[["S",3,"12-17","B1.105"]],"Ca C3","17/07/2027","TĐ","PM"],"ENL701_262_D09":["Tiếng Anh chuyên ngành 1",[["C",3,"12-17","B1.105"]],"Ca C3","17/07/2027","TĐ","PM"],"ENL701_262_D10":["Tiếng Anh chuyên ngành 1",[["C",6,"12-17","A204"]],"Ca C2","17/07/2027","TĐ","PM"],"ENL701_262_D11":["Tiếng Anh chuyên ngành 1",[["S",5,"1-6","A204"]],"Ca C3","23/04/2027","TĐ","PM"],"ENL701_262_D12":["Tiếng Anh chuyên ngành 1",[["S",6,"1-6","B1.405"]],"Ca C3","23/04/2027","TĐ","PM"],"ENL701_262_D13":["Tiếng Anh chuyên ngành 1",[["S",5,"12-17","A204"]],"Ca C3","17/07/2027","TĐ","PM"],"ENP314_262_D01":["Tiếng Anh chuyên ngành Hệ thống thông tin quản lý",[["S",5,"1-9","B1.101"]],"Ca 3","23/04/2027","TĐ",""],"ENP314_262_D02":["Tiếng Anh chuyên ngành Hệ thống thông tin quản lý",[["C",4,"12-20","B1.101"]],"Ca 2","16/07/2027","TĐ",""],"ENP314_262_D03":["Tiếng Anh chuyên ngành Hệ thống thông tin quản lý",[["S",5,"12-20","B1.101"]],"Ca 2","16/07/2027","TĐ",""],"ENP315_262_D01":["Tiếng Anh chuyên ngành Kế toán",[["C",5,"1-9","B1.105"]],"Ca 4","22/04/2027","TĐ",""],"ENP315_262_D02":["Tiếng Anh chuyên ngành Kế toán",[["C",5,"12-20","B1.101"]],"Ca 2","16/07/2027","TĐ",""],"ENP315_262_D03":["Tiếng Anh chuyên ngành Kế toán",[["S",6,"12-20","B1.101"]],"Ca 2","16/07/2027","TĐ",""],"ENP315_262_D04":["Tiếng Anh chuyên ngành Kế toán",[["C",6,"12-20","B1.101"]],"Ca 2","16/07/2027","TĐ",""],"ENP720_262_D01":["Tiếng Anh chuyên ngành Khoa học dữ liệu",[["S",2,"13-21","A308"]],"Ca S1","19/07/2027","TĐ","PM"],"ENP718_262_D01":["Tiếng Anh chuyên ngành Kinh doanh quốc tế",[["S",3,"12-17","A204"]],"Ca C2","13/07/2027","TĐ","PM"],"ENP316_262_D01":["Tiếng Anh chuyên ngành Kinh tế Quốc tế",[["S",3,"1-9","A104"]],"Ca 1","29/04/2027","TĐ",""],"ENP316_262_D02":["Tiếng Anh chuyên ngành Kinh tế Quốc tế",[["S",7,"12-15,17-20","B1.101"],["C",4,"20","B1.405"]],"Ca 1","13/07/2027","TĐ",""],"ENP316_262_D03":["Tiếng Anh chuyên ngành Kinh tế Quốc tế",[["C",7,"12-15,17-20","B1.101"],["C",4,"19","B1.402"]],"Ca 1","13/07/2027","TĐ",""],"ENP316_262_D04":["Tiếng Anh chuyên ngành Kinh tế Quốc tế",[["S",5,"12-20","A303"]],"Ca 1","13/07/2027","TĐ",""],"ENP316_262_D05":["Tiếng Anh chuyên ngành Kinh tế Quốc tế",[["C",3,"12-20","A303"]],"Ca 1","13/07/2027","TĐ",""],"ENP722_262_D01":["Tiếng Anh chuyên ngành Logistics và quản lý chuỗi cung ứng",[["S",2,"13-21","B1.101"]],"Ca 3","14/07/2027","TĐ",""],"ENP312_262_D01":["Tiếng Anh chuyên ngành luật kinh doanh",[["S",5,"1-9","A303"]],"Ca S3","29/04/2027","TĐ","PM"],"ENP312_262_D02":["Tiếng Anh chuyên ngành luật kinh doanh",[["C",5,"1-9","B1.102"]],"Ca S3","29/04/2027","TĐ","PM"],"ENP320_262_D01":["Tiếng Anh chuyên ngành Marketing",[["S",2,"1-9","B1.101"]],"Ca C3","26/04/2027","TĐ","PM"],"ENP320_262_D02":["Tiếng Anh chuyên ngành Marketing",[["C",2,"1-9","B1.102"]],"Ca C3","26/04/2027","TĐ","PM"],"ENP320_262_D03":["Tiếng Anh chuyên ngành Marketing",[["S",3,"1-9","B1.101"]],"Ca C3","26/04/2027","TĐ","PM"],"ENP320_262_D04":["Tiếng Anh chuyên ngành Marketing",[["S",3,"12-20","A203"]],"Ca C3","15/07/2027","TĐ","PM"],"ENP313_262_D01":["Tiếng Anh chuyên ngành quản lý nhân sự",[["C",4,"12-20","A004"]],"Ca S1","14/07/2027","TĐ","PM"],"ENP313_262_D02":["Tiếng Anh chuyên ngành quản lý nhân sự",[["S",3,"12-20","B1.101"]],"Ca S1","14/07/2027","TĐ","PM"],"ENP317_262_D01":["Tiếng Anh chuyên ngành Quản trị kinh doanh",[["C",3,"1-9","B1.101"]],"Ca 3","24/04/2027","TĐ",""],"ENP317_262_D02":["Tiếng Anh chuyên ngành Quản trị kinh doanh",[["C",3,"12-20","B1.101"]],"Ca 3","17/07/2027","TĐ",""],"ENP317_262_D03":["Tiếng Anh chuyên ngành Quản trị kinh doanh",[["C",4,"12-20","B1.102"]],"Ca 3","17/07/2027","TĐ",""],"ENP318_262_D01":["Tiếng Anh chuyên ngành Tài chính - Ngân hàng",[["C",4,"1-9","B1.101"]],"Ca 2","27/04/2027","TĐ",""],"ENP318_262_D02":["Tiếng Anh chuyên ngành Tài chính - Ngân hàng",[["S",5,"1-9","B1.102"]],"Ca 2","27/04/2027","TĐ",""],"ENP318_262_D03":["Tiếng Anh chuyên ngành Tài chính - Ngân hàng",[["C",5,"1-9","B1.201"]],"Ca 2","27/04/2027","TĐ",""],"ENP318_262_D04":["Tiếng Anh chuyên ngành Tài chính - Ngân hàng",[["S",6,"1-8","B1.102"],["S",7,"8","B1.201"]],"Ca 2","27/04/2027","TĐ",""],"ENP318_262_D05":["Tiếng Anh chuyên ngành Tài chính - Ngân hàng",[["C",6,"1-8","B1.101"],["C",7,"8","B1.202"]],"Ca 2","27/04/2027","TĐ",""],"ENP318_262_D06":["Tiếng Anh chuyên ngành Tài chính - Ngân hàng",[["S",5,"12-20","B1.102"]],"Ca 2","16/07/2027","TĐ",""],"ENP318_262_D07":["Tiếng Anh chuyên ngành Tài chính - Ngân hàng",[["C",5,"12-20","B1.102"]],"Ca 2","16/07/2027","TĐ",""],"ENP318_262_D08":["Tiếng Anh chuyên ngành Tài chính - Ngân hàng",[["S",6,"12-20","B1.102"]],"Ca 2","16/07/2027","TĐ",""],"ENP318_262_D09":["Tiếng Anh chuyên ngành Tài chính - Ngân hàng",[["C",6,"12-20","B1.102"]],"Ca 2","16/07/2027","TĐ",""],"ENP712_262_D01":["Tiếng anh pháp lý 1",[["S",2,"1-6","B1.205"]],"Ca 4","24/04/2027","TĐ",""],"ENP712_262_D02":["Tiếng anh pháp lý 1",[["C",2,"1-6","B1.202"]],"Ca 4","24/04/2027","TĐ",""],"ENP712_262_D03":["Tiếng anh pháp lý 1",[["S",7,"1,3-7","B1.201"]],"Ca 4","24/04/2027","TĐ",""],"ENP712_262_D04":["Tiếng anh pháp lý 1",[["C",4,"1,3-7","A103"]],"Ca 4","24/04/2027","TĐ",""],"ENP311_262_D01":["Tiếng Anh pháp lý 2",[["S",2,"13-21","B1.102"]],"Ca 2","16/07/2027","TĐ",""],"ENP311_262_D02":["Tiếng Anh pháp lý 2",[["C",2,"13-21","B1.102"]],"Ca 2","16/07/2027","TĐ",""],"ENP311_262_D03":["Tiếng Anh pháp lý 2",[["S",7,"12-15,17-20","B1.102"],["C",4,"20","B1.402"]],"Ca 2","16/07/2027","TĐ",""],"ENP311_262_D04":["Tiếng Anh pháp lý 2",[["C",7,"12-15,17-20","B1.102"],["C",6,"20","B1.302"]],"Ca 2","16/07/2027","TĐ",""],"CNL306_262_D01":["Tiếng Trung Quốc 1",[["S",3,"1-9","B1.201"]],"Ca 2","23/04/2027","TĐ",""],"CNL306_262_D02":["Tiếng Trung Quốc 1",[["C",3,"1-9","B1.201"]],"Ca 2","23/04/2027","TĐ",""],"CNL306_262_D03":["Tiếng Trung Quốc 1",[["C",4,"1-9","B1.201"]],"Ca 2","23/04/2027","TĐ",""],"CNL724_262_D01":["Tiếng Trung Quốc 2 (đọc – viết)",[["S",5,"1-9","B1.105"]],"Ca 2","23/04/2027","TĐ",""],"CNL724_262_D02":["Tiếng Trung Quốc 2 (đọc – viết)",[["C",5,"1-9","B1.202"]],"Ca 2","23/04/2027","TĐ",""],"CNL724_262_D03":["Tiếng Trung Quốc 2 (đọc – viết)",[["S",6,"1-8","B1.105"],["S",2,"8","B1.202"]],"Ca 2","23/04/2027","TĐ",""],"CNL725_262_D01":["Tiếng Trung Quốc 2 (nghe – nói)",[["S",6,"1-8","B1.201"],["S",3,"8","B1.202"]],"Ca C3","27/04/2027","TĐ","PM"],"CNL725_262_D02":["Tiếng Trung Quốc 2 (nghe – nói)",[["S",7,"1,3-8","B1.101"],["S",5,"7-8","B1.404"]],"Ca C3","27/04/2027","TĐ","PM"],"CNL725_262_D03":["Tiếng Trung Quốc 2 (nghe – nói)",[["C",7,"1,3-8","B1.102"],["C",5,"7-8","B1.302"]],"Ca C3","27/04/2027","TĐ","PM"],"CNL308_262_D01":["Tiếng Trung Quốc 3",[["S",2,"1-9","B1.102"]],"Ca 4","26/04/2027","TĐ",""],"CNL308_262_D02":["Tiếng Trung Quốc 3",[["C",2,"1-9","B1.105"]],"Ca 4","26/04/2027","TĐ",""],"CNL308_262_D03":["Tiếng Trung Quốc 3",[["S",3,"1-9","B1.102"]],"Ca 4","26/04/2027","TĐ",""],"CNL308_262_D04":["Tiếng Trung Quốc 3",[["C",3,"1-9","B1.102"]],"Ca 4","26/04/2027","TĐ",""],"CNL726_262_D01":["Tiếng Trung Quốc 3 (đọc – viết)",[["S",3,"16-20","B1.202"],["S",7,"17-20","B1.205"]],"Ca 4","17/07/2027","TĐ",""],"CNL726_262_D02":["Tiếng Trung Quốc 3 (đọc – viết)",[["C",3,"16-20","B1.201"],["C",7,"17-20","B1.401"]],"Ca 4","17/07/2027","TĐ",""],"CNL726_262_D03":["Tiếng Trung Quốc 3 (đọc – viết)",[["C",4,"16-20","B1.202"],["C",2,"17-20","A103"]],"Ca 4","17/07/2027","TĐ",""],"CNL727_262_D01":["Tiếng Trung Quốc 3 (nghe – nói)",[["S",5,"16-20","B1.301"],["S",2,"17-20","B1.204"]],"Ca C1","13/07/2027","TĐ","PM"],"CNL727_262_D02":["Tiếng Trung Quốc 3 (nghe – nói)",[["C",5,"16-20","B1.205"],["C",2,"17-20","A104"]],"Ca C1","13/07/2027","TĐ","PM"],"CNL727_262_D03":["Tiếng Trung Quốc 3 (nghe – nói)",[["S",6,"16-20","B1.301"],["S",7,"17-20","B1.301"]],"Ca C1","13/07/2027","TĐ","PM"],"CNL309_262_D01":["Tiếng Trung Quốc 4",[["S",2,"13-21","B1.105"]],"Ca 2","14/07/2027","TĐ",""],"CNL309_262_D02":["Tiếng Trung Quốc 4",[["C",6,"12-20","B1.202"]],"Ca 2","14/07/2027","TĐ",""],"CNL309_262_D03":["Tiếng Trung Quốc 4",[["S",7,"12-15,17-20","B1.105"],["S",3,"20","B1.104"]],"Ca 2","14/07/2027","TĐ",""],"CNL309_262_D04":["Tiếng Trung Quốc 4",[["C",7,"12-15,17-20","B1.105"],["C",3,"20","A202"]],"Ca 2","14/07/2027","TĐ",""],"CNL314_262_D01":["Tiếng Trung Quốc kinh doanh 2",[["C",2,"13-21","B1.105"]],"Ca 2","12/07/2027","TĐ",""],"CNL314_262_D02":["Tiếng Trung Quốc kinh doanh 2",[["S",3,"12-20","B1.102"]],"Ca 2","12/07/2027","TĐ",""],"CNL316_262_D01":["Tiếng Trung Quốc văn phòng",[["C",4,"12-20","B1.201"]],"Ca 3","16/07/2027","TĐ",""],"CNL316_262_D02":["Tiếng Trung Quốc văn phòng",[["C",6,"12-20","B1.301"]],"Ca 3","16/07/2027","TĐ",""],"SOC312_262_D01":["Văn hóa Anh",[["S",5,"12-20","B1.105"]],"Ca 2","17/07/2027","TĐ",""],"SOC312_262_D02":["Văn hóa Anh",[["C",5,"12-20","B1.105"]],"Ca 2","17/07/2027","TĐ",""],"SOC313_262_D01":["Văn hóa Mỹ",[["S",6,"12-20","B1.105"]],"Ca 1","17/07/2027","TĐ",""],"SOC313_262_D02":["Văn hóa Mỹ",[["C",6,"12-20","B1.105"]],"Ca 1","17/07/2027","TĐ",""],"DIM712_262_D01":["Chiến lược định giá",[["S",2,"1-9","B1.301"]],"Ca 4","22/04/2027","TĐ",""],"DIM712_262_D02":["Chiến lược định giá",[["C",2,"1-9","B1.206"]],"Ca 4","22/04/2027","TĐ",""],"DIM702_262_D01":["Chiến lược kinh doanh số",[["C",2,"13-21","B1.104"]],"Ca 2","15/07/2027","TĐ",""],"DIM702_262_D02":["Chiến lược kinh doanh số",[["S",3,"12-20","B1.401"]],"Ca 2","15/07/2027","TĐ",""],"DIM702_262_D03":["Chiến lược kinh doanh số",[["S",6,"12-20","B1.405"]],"Ca 2","15/07/2027","TĐ",""],"INB724_262_D01":["Chiến lược Marketing",[["C",3,"12-20","A004"]],"Ca C1","15/07/2027","TĐ","PM"],"INB724_262_D02":["Chiến lược Marketing",[["S",4,"12-20","B1.205"]],"Ca C1","15/07/2027","TĐ","PM"],"INB724_262_D03":["Chiến lược Marketing",[["C",4,"12-20","B1.301"]],"Ca C1","15/07/2027","TĐ","PM"],"MAG302_262_D02":["Đạo đức kinh doanh và văn hóa doanh nghiệp",[["S",5,"12-20","A308"]],"Ca C2","19/07/2027","TĐ","PM"],"MAG302_262_D03":["Đạo đức kinh doanh và văn hóa doanh nghiệp",[["C",5,"12-20","B1.206"]],"Ca C2","19/07/2027","TĐ","PM"],"DIM713_262_D01":["Đề án Thiết kế và triển khai dự án truyền thông Marketing",[["C",3,"1-9","B1.305"]],"Ca 1","29/04/2027","TĐ",""],"LOG710_262_D01":["Dịch vụ khách hàng trong logistics và chuỗi cung ứng",[["S",6,"12-20","B1.402"]],"Ca 1","12/07/2027","TĐ",""],"LOG711_262_D01":["ERP trong quản trị chuỗi cung ứng",[["S",4,"1-9","B1.404"]],"Ca 1","24/04/2027","TĐ",""],"LOG712_262_D01":["Giao dịch thương mại",[["S",7,"12-15,17-20","B1.203"],["S",4,"20","A102"]],"Ca 1","15/07/2027","TĐ",""],"DIM715_262_D01":["Hành vi người tiêu dùng trong môi trường kỹ thuật số",[["C",4,"1-9","B1.103"]],"Ca 3","26/04/2027","TĐ",""],"MG013_2_262_D01":["Hành vi tổ chức",[["S",4,"12-20","B1.406"]],"Ca C1","12/07/2027","TĐ","PM"],"DIM703_262_D01":["Khởi nghiệp kinh doanh trong thời đại số",[["S",4,"1-9","B1.103"]],"Ca 3","23/04/2027","TĐ",""],"DIM703_262_D02":["Khởi nghiệp kinh doanh trong thời đại số",[["S",5,"1-9","B1.106"]],"Ca 3","23/04/2027","TĐ",""],"LOG708_262_D01":["Kỹ thuật ra quyết định",[["S",2,"16-21","B1.404"]],"Ca 2","16/07/2027","TĐ",""],"LOG715_262_D01":["Lập kế hoạch vận tải đường thuỷ",[["S",7,"1,3-8","B1.303"],["S",5,"8-9","B1.104"]],"Ca 1","26/04/2027","TĐ",""],"LOG717_262_D01":["Logistics và chuỗi cung ứng trong thương mại điện tử",[["S",6,"1-8","B1.303"],["S",5,"7","B1.104"]],"Ca 1","27/04/2027","TĐ",""],"DIM705_262_D01":["Marketing công cụ tìm kiếm",[["S",2,"1-9","B1.405"]],"Ca 3","23/04/2027","TĐ",""],"MKE303_262_D01":["Marketing dịch vụ",[["C",2,"13-21","B1.403"]],"Ca 1","12/07/2027","TĐ",""],"MKE305_262_D01":["Marketing quốc tế",[["S",3,"12-20","B1.305"]],"Ca 3","15/07/2027","TĐ",""],"MKE305_262_D02":["Marketing quốc tế",[["C",3,"12-20","B1.405"]],"Ca 3","15/07/2027","TĐ",""],"DIM706_262_D01":["Marketing số",[["C",2,"1-9","B1.402"]],"Ca S1","29/04/2027","TĐ","PM"],"DIM706_262_D02":["Marketing số",[["S",3,"1-9","B1.301"]],"Ca S1","29/04/2027","TĐ","PM"],"DIM706_262_D03":["Marketing số",[["S",5,"1-9","B1.103"]],"Ca S1","29/04/2027","TĐ","PM"],"DIM706_262_D04":["Marketing số",[["S",2,"13-21","B1.206"]],"Ca S1","17/07/2027","TĐ","PM"],"DIM706_262_D05":["Marketing số",[["C",4,"12-20","A306"]],"Ca S2","17/07/2027","TĐ","PM"],"DIM706_262_D06":["Marketing số",[["C",4,"12-20","A307"]],"Ca S2","17/07/2027","TĐ","PM"],"DIM706_262_D07":["Marketing số",[["S",5,"12-20","A302"]],"Ca S1","17/07/2027","TĐ","PM"],"DIM706_262_D08":["Marketing số",[["C",5,"12-20","B1.303"]],"Ca S1","17/07/2027","TĐ","PM"],"DIM706_262_D09":["Marketing số",[["S",6,"12-20","B1.203"]],"Ca S2","17/07/2027","TĐ","PM"],"DIM706_262_D10":["Marketing số",[["C",7,"12-15,17-20","A305"],["C",2,"20","A201"]],"Ca S1","17/07/2027","TĐ","PM"],"DIM725_262_D01":["Nghiên cứu Marketing",[["C",2,"13-21","B1.305"]],"Ca 2","14/07/2027","TĐ",""],"DIM725_262_D02":["Nghiên cứu Marketing",[["S",3,"12-20","B1.303"]],"Ca 2","14/07/2027","TĐ",""],"DIM726_262_D01":["Ngôn ngữ truyền thông",[["S",7,"1,3-5","B1.301"],["S",3,"4-5","A102"]],"Ca 4","24/04/2027","TĐ",""],"MKE308_262_D01":["Nguyên lý Marketing",[["C",4,"1-9","B1.305"]],"Ca S1","24/04/2027","TĐ","PM"],"MKE308_262_D02":["Nguyên lý Marketing",[["S",5,"1-9","B1.401"]],"Ca S1","24/04/2027","TĐ","PM"],"MKE308_262_D03":["Nguyên lý Marketing",[["C",3,"12-20","B1.306"]],"Ca C3","17/07/2027","TĐ","PM"],"DIM727_262_D01":["Nguyên lý thị giác",[["C",5,"1-5","A102"],["C",4,"5","A101"]],"Ca 3","24/04/2027","TĐ",""],"LOG705_262_D01":["Quản lý giao nhận và khai báo hải quan",[["S",4,"12-20","B1.403"]],"Ca 1","14/07/2027","TĐ",""],"MAG312_262_D01":["Quản trị chất lượng",[["C",4,"12-20","B1.302"]],"Ca 2","15/07/2027","TĐ",""],"MAG312_262_D02":["Quản trị chất lượng",[["S",5,"12-20","B1.306"]],"Ca 2","15/07/2027","TĐ",""],"MAG312_262_D03":["Quản trị chất lượng",[["C",5,"12-20","A103"]],"Ca 2","15/07/2027","TĐ",""],"MAG307_262_D01":["Quản trị chuỗi cung ứng",[["S",2,"13-21","B1.401"]],"Ca 1","12/07/2027","TĐ",""],"MAG307_262_D02":["Quản trị chuỗi cung ứng",[["C",2,"13-21","B1.402"]],"Ca 1","12/07/2027","TĐ",""],"MAG307_262_D03":["Quản trị chuỗi cung ứng",[["S",3,"12-20","A302"]],"Ca 1","12/07/2027","TĐ",""],"MAG307_262_D04":["Quản trị chuỗi cung ứng",[["C",3,"12-20","A301"]],"Ca 1","12/07/2027","TĐ",""],"MAG307_262_D05":["Quản trị chuỗi cung ứng",[["S",6,"12-20","A306"]],"Ca 1","12/07/2027","TĐ",""],"MAG307_262_D06":["Quản trị chuỗi cung ứng",[["S",7,"12-15,17-20","A307"],["S",5,"20","B1.406"]],"Ca 1","12/07/2027","TĐ",""],"MAG307_262_D07":["Quản trị chuỗi cung ứng",[["C",7,"12-15,17-20","A302"],["C",5,"20","B1.204"]],"Ca 1","12/07/2027","TĐ",""],"MAG322_262_D01":["Quản trị học",[["S",6,"1-8","B1.403"],["S",2,"8","B1.403"]],"Ca C1","26/04/2027","TĐ","PM"],"MAG322_262_D02":["Quản trị học",[["S",4,"12-20","B1.103"]],"Ca C2","13/07/2027","TĐ","PM"],"MAG322_262_D03":["Quản trị học",[["S",4,"12-20","A101"]],"Ca C2","13/07/2027","TĐ","PM"],"MAG704_262_D01":["Quản trị lực lượng bán hàng",[["S",2,"1-9","A301"]],"Ca 3","23/04/2027","TĐ",""],"MAG704_262_D02":["Quản trị lực lượng bán hàng",[["S",7,"1,3-8","A301"],["S",3,"7-8","B1.403"]],"Ca 3","23/04/2027","TĐ",""],"MAG704_262_D03":["Quản trị lực lượng bán hàng",[["C",7,"1,3-8","A301"],["C",3,"7-8","B1.403"]],"Ca 3","23/04/2027","TĐ",""],"MAG309_262_D01":["Quản trị Marketing",[["C",5,"12-20","B1.305"]],"Ca C1","17/07/2027","TĐ","PM"],"MAG309_262_D02":["Quản trị Marketing",[["S",6,"12-20","B1.406"]],"Ca C1","17/07/2027","TĐ","PM"],"MAG320_262_D01":["Quản trị nguồn nhân lực",[["S",7,"12-15,17-20","A305"],["S",3,"20","B1.105"]],"Ca C2","17/07/2027","TĐ","PM"],"DIM732_262_D01":["Quản trị quan hệ công chúng",[["C",7,"12-15,17-20","B1.206"],["C",5,"20","A101"]],"Ca 3","16/07/2027","TĐ",""],"MAG316_262_D01":["Quản trị quan hệ khách hàng",[["C",2,"1-9","B1.305"]],"Ca 2","26/04/2027","TĐ",""],"MAG316_262_D02":["Quản trị quan hệ khách hàng",[["S",3,"1-9","B1.401"]],"Ca 2","26/04/2027","TĐ",""],"MAG316_262_D03":["Quản trị quan hệ khách hàng",[["C",3,"1-9","B1.401"]],"Ca 2","26/04/2027","TĐ",""],"MAG316_262_D04":["Quản trị quan hệ khách hàng",[["S",4,"1-9","B1.205"]],"Ca 2","26/04/2027","TĐ",""],"LOG728_262_D01":["Quản trị rủi ro trong logistics và chuỗi cung ứng",[["S",2,"13-21","B1.402"]],"Ca 3","15/07/2027","TĐ",""],"LOG728_262_D02":["Quản trị rủi ro trong logistics và chuỗi cung ứng",[["C",2,"13-21","B1.405"]],"Ca 3","15/07/2027","TĐ",""],"MAG705_262_D01":["Quản trị sự thay đổi trong bối cảnh quốc tế hóa",[["C",4,"1-9","A302"]],"Ca 4","27/04/2027","TĐ",""],"MAG705_262_D02":["Quản trị sự thay đổi trong bối cảnh quốc tế hóa",[["S",5,"1-9","A301"]],"Ca 4","27/04/2027","TĐ",""],"MAG705_262_D03":["Quản trị sự thay đổi trong bối cảnh quốc tế hóa",[["C",5,"1-9","A302"]],"Ca 4","27/04/2027","TĐ",""],"MKE306_262_D01":["Quản trị thương hiệu",[["S",2,"1-9","A302"]],"Ca 1","22/04/2027","TĐ",""],"MKE306_262_D02":["Quản trị thương hiệu",[["S",6,"1-8","B1.206"],["S",7,"8","B1.305"]],"Ca 1","22/04/2027","TĐ",""],"MKE306_262_D03":["Quản trị thương hiệu",[["S",7,"1,3-8","A302"],["S",6,"7-8","B1.406"]],"Ca 1","22/04/2027","TĐ",""],"MKE306_262_D04":["Quản trị thương hiệu",[["C",7,"1,3-8","A302"],["C",4,"8-9","B1.403"]],"Ca 1","22/04/2027","TĐ",""],"MAG306_262_D01":["Quản trị vận hành",[["S",3,"12-20","B1.306"]],"Ca C1","19/07/2027","TĐ","PM"],"LOG730_262_D01":["Quản trị vận hành trong logistics và chuỗi cung ứng",[["C",3,"12-20","B1.305"]],"Ca 1","17/07/2027","TĐ",""],"LOG730_262_D02":["Quản trị vận hành trong logistics và chuỗi cung ứng",[["C",4,"12-20","B1.303"]],"Ca 1","17/07/2027","TĐ",""],"DIM734_262_D01":["Quảng cáo trên nền tảng số",[["S",5,"12-20","B1.303"]],"Ca 1","12/07/2027","TĐ",""],"DIM707_262_D01":["Sáng tạo nội dung số",[["C",2,"1-9","B1.401"]],"Ca 3","29/04/2027","TĐ",""],"DIM707_262_D02":["Sáng tạo nội dung số",[["S",3,"1-9","B1.305"]],"Ca 3","29/04/2027","TĐ",""],"DIM708_262_D01":["Sáng tạo và thiết kế trong thời đại số",[["S",5,"12-20","B1.106"]],"Ca 2","16/07/2027","TĐ",""],"DIM738_262_D01":["Trách nhiệm xã hội của doanh nghiệp",[["C",5,"12-20","B1.401"]],"Ca 1","14/07/2027","TĐ",""],"MAG707_262_D01":["Truyền thông kinh doanh",[["S",4,"1-9","B1.102"]],"Ca S1","28/04/2027","TĐ","PM"],"MKE307_262_D01":["Truyền thông Marketing tích hợp",[["S",4,"1-9","A301"]],"Ca S2","29/04/2027","TĐ","PM"],"MKE307_262_D02":["Truyền thông Marketing tích hợp",[["C",4,"1-9","A305"]],"Ca S2","29/04/2027","TĐ","PM"],"MKE307_262_D03":["Truyền thông Marketing tích hợp",[["S",5,"1-9","A302"]],"Ca S2","29/04/2027","TĐ","PM"],"DIM723_262_D01":["Truyền thông toàn cầu",[["C",5,"1-5","A103"],["C",7,"5","A103"]],"Ca 1","24/04/2027","TĐ",""],"MAG709_262_D01":["Tư duy phản biện",[["S",4,"1-5","B1.401"],["S",3,"5","B1.204"]],"Ca 3","24/04/2027","TĐ",""],"MAG709_262_D02":["Tư duy phản biện",[["S",6,"1-5","B1.401"],["S",2,"4","B1.204"]],"Ca 3","24/04/2027","TĐ",""],"MAG709_262_D03":["Tư duy phản biện",[["S",6,"16-20","A203"],["S",2,"20","A203"]],"Ca 1","16/07/2027","TĐ",""],"FIN312_262_D01":["Bảo hiểm",[["S",2,"13-21","B1.106"]],"Ca S1","15/07/2027","TĐ","PM"],"FIN709_262_D01":["Đạo đức nghề nghiệp trong ngành tài chính ngân hàng",[["C",2,"13-21","A305"]],"Ca 3","17/07/2027","TĐ",""],"FIN709_262_D02":["Đạo đức nghề nghiệp trong ngành tài chính ngân hàng",[["S",3,"12-20","A307"]],"Ca 3","17/07/2027","TĐ",""],"FIN709_262_D03":["Đạo đức nghề nghiệp trong ngành tài chính ngân hàng",[["C",3,"12-20","A307"]],"Ca 3","17/07/2027","TĐ",""],"FIN709_262_D04":["Đạo đức nghề nghiệp trong ngành tài chính ngân hàng",[["S",4,"12-20","A306"]],"Ca 3","17/07/2027","TĐ",""],"FIN709_262_D05":["Đạo đức nghề nghiệp trong ngành tài chính ngân hàng",[["C",6,"12-20","A306"]],"Ca 3","17/07/2027","TĐ",""],"FIN709_262_D06":["Đạo đức nghề nghiệp trong ngành tài chính ngân hàng",[["S",6,"12-20","A307"]],"Ca 3","17/07/2027","TĐ",""],"FIN309_262_D01":["Đầu tư tài chính",[["S",6,"12-20","B1.103"]],"Ca C3","18/07/2027","TĐ","PM"],"FIN705_262_D01":["Định phí bảo hiểm",[["S",2,"1-9","A305"]],"Ca 1","26/04/2027","TĐ",""],"FIN705_262_D02":["Định phí bảo hiểm",[["C",6,"12-20","A308"]],"Ca 1","15/07/2027","TĐ",""],"FIN310_262_D01":["Nghiệp vụ ngân hàng đầu tư",[["S",4,"12-20","A305"]],"Ca C3","13/07/2027","TĐ","PM"],"FIN310_262_D02":["Nghiệp vụ ngân hàng đầu tư",[["C",7,"12-15,17-20","A306"],["C",2,"19","B1.204"]],"Ca C3","13/07/2027","TĐ","PM"],"FIN707_262_D01":["Phân tích kỹ thuật trên thị trường tài chính",[["C",5,"12-20","A306"]],"Ca 1","12/07/2027","TĐ",""],"FIN707_262_D02":["Phân tích kỹ thuật trên thị trường tài chính",[["S",4,"1-9","A308"]],"Ca 3","23/04/2027","TĐ",""],"FIN304_262_D01":["Phân tích tài chính doanh nghiệp",[["S",2,"13-21","A302"]],"Ca S1","14/07/2027","TĐ","PM"],"FIN304_262_D02":["Phân tích tài chính doanh nghiệp",[["C",2,"13-21","B1.203"]],"Ca S2","14/07/2027","TĐ","PM"],"FIN304_262_D03":["Phân tích tài chính doanh nghiệp",[["S",3,"12-20","A301"]],"Ca S2","14/07/2027","TĐ","PM"],"FIN304_262_D04":["Phân tích tài chính doanh nghiệp",[["C",3,"12-20","A302"]],"Ca S1","14/07/2027","TĐ","PM"],"FIN730_262_D01":["Phát triển bền vững và Tài chính xanh",[["S",2,"1-6","A102"]],"Ca 3","28/04/2027","TĐ",""],"FIN730_262_D02":["Phát triển bền vững và Tài chính xanh",[["S",2,"6-8","A104"],["S",7,"6-8","B1.402"]],"Ca 3","28/04/2027","TĐ",""],"FIN730_262_D03":["Phát triển bền vững và Tài chính xanh",[["C",2,"1-5","B1.104"],["C",6,"5","B1.302"]],"Ca 3","28/04/2027","TĐ",""],"FIN730_262_D04":["Phát triển bền vững và Tài chính xanh",[["C",3,"6-8","B1.404"],["C",2,"6-8","A103"]],"Ca 3","28/04/2027","TĐ",""],"FIN730_262_D05":["Phát triển bền vững và Tài chính xanh",[["C",3,"6-8","A004"],["C",7,"6-8","B1.403"]],"Ca 3","28/04/2027","TĐ",""],"FIN730_262_D06":["Phát triển bền vững và Tài chính xanh",[["S",4,"1-5","B1.402"],["S",5,"4","A201"]],"Ca 3","28/04/2027","TĐ",""],"FIN730_262_D07":["Phát triển bền vững và Tài chính xanh",[["S",4,"1-5","B1.302"],["S",5,"5","A201"]],"Ca 3","28/04/2027","TĐ",""],"FIN730_262_D08":["Phát triển bền vững và Tài chính xanh",[["S",4,"1-5","B1.305"],["S",5,"5","A202"]],"Ca 3","28/04/2027","TĐ",""],"FIN730_262_D09":["Phát triển bền vững và Tài chính xanh",[["S",5,"6-8","A103"],["S",3,"6-8","A103"]],"Ca 3","28/04/2027","TĐ",""],"FIN730_262_D10":["Phát triển bền vững và Tài chính xanh",[["S",5,"1-5","A103"],["S",2,"2","B1.204"]],"Ca 3","28/04/2027","TĐ",""],"FIN730_262_D11":["Phát triển bền vững và Tài chính xanh",[["C",5,"1-5","A101"],["C",2,"5","A004"]],"Ca 3","28/04/2027","TĐ",""],"FIN730_262_D12":["Phát triển bền vững và Tài chính xanh",[["C",5,"6-8","A102"],["C",3,"6-8","A102"]],"Ca 3","28/04/2027","TĐ",""],"FIN730_262_D13":["Phát triển bền vững và Tài chính xanh",[["S",6,"1-5","B1.305"],["S",5,"4","A202"]],"Ca 3","28/04/2027","TĐ",""],"FIN730_262_D14":["Phát triển bền vững và Tài chính xanh",[["S",6,"6-8","B1.402"],["S",3,"6-8","B1.104"]],"Ca 3","28/04/2027","TĐ",""],"FIN730_262_D15":["Phát triển bền vững và Tài chính xanh",[["C",6,"6-8","B1.302"],["C",3,"6-8","A103"]],"Ca 3","28/04/2027","TĐ",""],"FIN730_262_D16":["Phát triển bền vững và Tài chính xanh",[["S",7,"1,3-5","B1.205"],["S",3,"4-5","A101"]],"Ca 3","28/04/2027","TĐ",""],"FIN730_262_D17":["Phát triển bền vững và Tài chính xanh",[["S",7,"6-8","B1.205"],["S",2,"6-8","A201"]],"Ca 3","28/04/2027","TĐ",""],"FIN730_262_D18":["Phát triển bền vững và Tài chính xanh",[["C",7,"1,3-5","B1.305"],["C",3,"4-5","A102"]],"Ca 3","28/04/2027","TĐ",""],"FIN730_262_D19":["Phát triển bền vững và Tài chính xanh",[["S",2,"13-16,21","B1.204"],["S",4,"16","B1.305"]],"Ca 2","13/07/2027","TĐ",""],"FIN730_262_D20":["Phát triển bền vững và Tài chính xanh",[["C",2,"16-21","A004"]],"Ca 2","13/07/2027","TĐ",""],"FIN730_262_D21":["Phát triển bền vững và Tài chính xanh",[["C",2,"16-21","A101"]],"Ca 2","13/07/2027","TĐ",""],"FIN730_262_D22":["Phát triển bền vững và Tài chính xanh",[["S",4,"16-20","B1.301"],["S",5,"20","B1.405"]],"Ca 2","13/07/2027","TĐ",""],"FIN730_262_D23":["Phát triển bền vững và Tài chính xanh",[["S",5,"16-20","B1.302"],["S",3,"16","A101"]],"Ca 2","13/07/2027","TĐ",""],"FIN730_262_D24":["Phát triển bền vững và Tài chính xanh",[["C",5,"12-16","A203"],["C",3,"16","A202"]],"Ca 2","13/07/2027","TĐ",""],"FIN730_262_D25":["Phát triển bền vững và Tài chính xanh",[["S",6,"16-20","A103"],["S",2,"17","A103"]],"Ca 2","13/07/2027","TĐ",""],"FIN730_262_D26":["Phát triển bền vững và Tài chính xanh",[["S",6,"12-16","A201"],["S",2,"13","A103"]],"Ca 2","13/07/2027","TĐ",""],"FIN730_262_D27":["Phát triển bền vững và Tài chính xanh",[["C",6,"12-16","B1.402"],["C",2,"16","A104"]],"Ca 2","13/07/2027","TĐ",""],"FIN730_262_D28":["Phát triển bền vững và Tài chính xanh",[["C",6,"12-16","A102"],["C",2,"16","A103"]],"Ca 2","13/07/2027","TĐ",""],"FIN730_262_D29":["Phát triển bền vững và Tài chính xanh",[["S",7,"12-15","B1.303"],["S",5,"14-15","B1.301"]],"Ca 2","13/07/2027","TĐ",""],"FIN730_262_D30":["Phát triển bền vững và Tài chính xanh",[["S",7,"12-15","B1.205"],["S",2,"14-15","B1.405"]],"Ca 2","13/07/2027","TĐ",""],"FIN730_262_D31":["Phát triển bền vững và Tài chính xanh",[["C",7,"17-20","B1.302"],["C",2,"19-20","A303"]],"Ca 2","13/07/2027","TĐ",""],"FIN308_262_D01":["Quản lý danh mục đầu tư",[["S",2,"1-9","B1.203"]],"Ca S3","29/04/2027","TĐ","PM"],"FIN308_262_D02":["Quản lý danh mục đầu tư",[["C",7,"1,3-8","A308"],["C",3,"7-8","B1.405"]],"Ca S3","29/04/2027","TĐ","PM"],"FIN706_262_D01":["Quản trị rủi ro bằng định lượng",[["S",3,"12-20","A306"]],"Ca 1","16/07/2027","TĐ",""],"FIN706_262_D02":["Quản trị rủi ro bằng định lượng",[["C",3,"12-20","B1.406"]],"Ca 1","16/07/2027","TĐ",""],"FIN307_262_D01":["Quản trị rủi ro tài chính",[["S",4,"12-20","B1.203"]],"Ca 1","12/07/2027","TĐ",""],"FIN725_262_D01":["Quản trị tài chính công ty đa quốc gia",[["S",5,"12-20","A301"]],"Ca C2","15/07/2027","TĐ","PM"],"FIN723_262_D01":["Tài chính công",[["C",2,"1-9","A301"]],"Ca 2","24/04/2027","TĐ",""],"FIN723_262_D02":["Tài chính công",[["S",3,"1-9","A305"]],"Ca 2","24/04/2027","TĐ",""],"FIN702_262_D01":["Tài chính định lượng",[["C",2,"1-9","A302"]],"Ca 3","23/04/2027","TĐ",""],"FIN303_262_D01":["Tài chính doanh nghiệp",[["C",3,"1-9","B1.203"]],"Ca S1","26/04/2027","TĐ","PM"],"FIN302_262_D01":["Thị trường tài chính và các định chế tài chính",[["S",4,"1-9","A305"]],"Ca S2","26/04/2027","TĐ","PM"],"FIN302_262_D02":["Thị trường tài chính và các định chế tài chính",[["S",5,"1-9","B1.203"]],"Ca S3","26/04/2027","TĐ","PM"],"FIN302_262_D03":["Thị trường tài chính và các định chế tài chính",[["C",5,"1-9","B1.206"]],"Ca S3","26/04/2027","TĐ","PM"],"FIN302_262_D04":["Thị trường tài chính và các định chế tài chính",[["S",6,"1-8","A301"],["S",5,"8","B1.403"]],"Ca S3","26/04/2027","TĐ","PM"],"FIN302_262_D05":["Thị trường tài chính và các định chế tài chính",[["C",6,"1-8","A302"],["C",5,"7","A004"]],"Ca S2","26/04/2027","TĐ","PM"],"FIN311_262_D01":["Thuế",[["S",6,"12-20","A305"]],"Ca C1","17/07/2027","TĐ","PM"],"FIN311_262_D02":["Thuế",[["C",6,"12-20","A302"]],"Ca C1","17/07/2027","TĐ","PM"],"FIN704_262_D01":["Ứng dụng và định giá phái sinh nâng cao",[["S",4,"1-9","A307"]],"Ca 4","27/04/2027","TĐ",""],"FIN704_262_D02":["Ứng dụng và định giá phái sinh nâng cao",[["C",5,"1-9","B1.303"]],"Ca 4","27/04/2027","TĐ",""],"ITS704_262_D02_2":["Hệ hoạch định nguồn lực doanh nghiệp",[["S",5,"1-9","A308"]],"Ca C3","29/04/2027","TĐ","PM"],"ITS704_262_D03_3":["Hệ hoạch định nguồn lực doanh nghiệp",[["S",5,"1-9","A308"]],"Ca C3","29/04/2027","TĐ","PM"],"MES303_262_D05_A":["Kinh tế học vĩ mô",[["S",5,"12-20","B1.204"]],"Ca C1","18/07/2027","TĐ","PM"],"ITS339_262_D02_A":["Phân tích thiết kế hệ thống thông tin",[["C",5,"12-20","A305"]],"Ca C3","15/07/2027","TĐ","PM"],"ITS339_262_D03_A":["Phân tích thiết kế hệ thống thông tin",[["C",5,"12-20","A305"]],"Ca C3","15/07/2027","TĐ","PM"],"ITB303_262_D04_A":["Thương mại điện tử",[["C",5,"1-9","A308"]],"Ca C2","22/04/2027","TĐ","PM"],"ITB303_262_D05_A":["Thương mại điện tử",[["C",5,"1-9","A308"]],"Ca C2","22/04/2027","TĐ","PM"],"ELI701_262_D05_A":["Ngữ âm – Âm vị học",[["C",6,"12-20","B1.201"]],"Ca 4","15/07/2027","TĐ",""],"ENS315_262_D05_A":["Tiếng Anh 4 - Đọc 4",[["C",4,"1-9","B1.102"]],"Ca 3","29/04/2027","TĐ",""],"ENP751_262_D05_A":["Tiếng Anh 4 - Nghe-Nói 4",[["C",3,"1-9","C205"]],"Ca C3","24/04/2027","TĐ","PM"],"CNL308_262_D05_A":["Tiếng Trung Quốc 3",[["S",2,"1-9","B1.102"]],"Ca 4","26/04/2027","TĐ",""],"CNL309_262_D05_A":["Tiếng Trung Quốc 4",[["S",2,"13-21","B1.105"]],"Ca 2","14/07/2027","TĐ",""]};
+
+    const WEEK1_START = new Date(2027, 1, 15); // 15/02/2027
+    const TOTAL_WEEKS = 22;
+
+    const EXAM_TIME_MAP = {
+      "Ca 1": "07:00", "Ca S1": "07:00",
+      "Ca S2": "08:30",
+      "Ca 2": "09:30",
+      "Ca S3": "10:00",
+      "Ca 3": "13:00", "Ca C1": "13:00",
+      "Ca C2": "14:30",
+      "Ca 4": "15:30",
+      "Ca C3": "16:00",
+      "Ca 5": "18:00"
+    };
+
+    const SESSION_TIME_MAP = {
+      "S": "Ca Sáng (07:00 – 11:05)",
+      "C": "Ca Chiều (13:00 – 17:05)",
+      "1-2": "Tiết 1–2 (07:00 – 08:30)",
+      "1-3": "Tiết 1–3 (07:00 – 09:15)",
+      "3-5": "Tiết 3–5 (08:30 – 11:05)",
+      "4-5": "Tiết 4–5 (09:35 – 11:05)",
+      "6-8": "Tiết 6–8 (13:00 – 15:15)",
+      "9-10": "Tiết 9–10 (15:35 – 17:05)"
+    };
+
+    const PALETTE = [
+      "bg-blue-50 border-blue-400 text-blue-950",
+      "bg-emerald-50 border-emerald-400 text-emerald-950",
+      "bg-amber-50 border-amber-400 text-amber-950",
+      "bg-purple-50 border-purple-400 text-purple-950",
+      "bg-rose-50 border-rose-400 text-rose-950",
+      "bg-cyan-50 border-cyan-400 text-cyan-950",
+      "bg-indigo-50 border-indigo-400 text-indigo-950",
+      "bg-teal-50 border-teal-400 text-teal-950"
+    ];
+
+    function parseWeeks(str) {
+      const res = new Set();
+      String(str || "").split(",").forEach(part => {
+        part = part.trim();
+        if (!part) return;
+        if (part.includes("-")) {
+          const [a, b] = part.split("-").map(x => parseInt(x.trim(), 10));
+          if (!isNaN(a) && !isNaN(b)) {
+            for (let w = a; w <= b; w++) res.add(w);
+          }
+        } else {
+          const w = parseInt(part, 10);
+          if (!isNaN(w)) res.add(w);
+        }
+      });
+      return Array.from(res).sort((a, b) => a - b);
+    }
+
+    // Giải nén dữ liệu 960 môn học
+    let COURSES_DB = {};
+    Object.entries(RAW_COMPACT_DB).forEach(([code, arr]) => {
+      const [name, rawSessions, examCa, examDate, examCampus, examPm] = arr;
+      const examRoom = examPm === "PM"
+        ? `Phòng máy - Cơ sở ${examCampus} (Chưa phân số phòng)`
+        : `Cơ sở ${examCampus} (Chưa phân phòng trên file)`;
+      COURSES_DB[code] = {
+        code,
+        name,
+        sessions: rawSessions.map(([ca, thu, tuanRaw, room]) => ({
+          ca,
+          thu,
+          tuanRaw,
+          weeks: parseWeeks(tuanRaw),
+          room
+        })),
+        examCa,
+        examDate,
+        examRoom
+      };
+    });
+
+    // Nạp thêm dữ liệu Excel tùy chỉnh nếu người dùng từng upload bản mới
+    const savedCustomDb = localStorage.getItem("hub_tkb_custom_db");
+    if (savedCustomDb) {
+      try {
+        COURSES_DB = { ...COURSES_DB, ...JSON.parse(savedCustomDb) };
+        document.getElementById("dbStatusText").textContent = `Đã nạp ${Object.keys(COURSES_DB).length} lớp học phần (bao gồm bản Excel cập nhật)`;
+      } catch (e) {}
+    }
+
+    // Quản lý đa kế hoạch A, B, C, D...
+    const STORAGE_KEY_PLANS = "hub_tkb_plans_v1";
+    let appState = null;
+
+    function loadPlansState() {
+      const raw = localStorage.getItem(STORAGE_KEY_PLANS);
+      if (raw) {
+        try {
+          const parsed = JSON.parse(raw);
+          if (parsed && Array.isArray(parsed.plans) && parsed.plans.length > 0) {
+            return parsed;
+          }
+        } catch (e) {}
+      }
+      // Di chuyển dữ liệu cũ (nếu có) vào Kế hoạch A, và tạo sẵn Kế hoạch A, B, C
+      const legacySelected = JSON.parse(localStorage.getItem("hub_tkb_selected") || "[]");
+      return {
+        activeId: "plan_a",
+        plans: [
+          { id: "plan_a", name: "Kế hoạch A", courses: legacySelected },
+          { id: "plan_b", name: "Kế hoạch B", courses: [] },
+          { id: "plan_c", name: "Kế hoạch C", courses: [] }
+        ]
+      };
+    }
+
+    function savePlansState() {
+      localStorage.setItem(STORAGE_KEY_PLANS, JSON.stringify(appState));
+      const ind = document.getElementById("saveIndicator");
+      ind.textContent = "✓ Đã lưu tự động";
+      ind.classList.remove("opacity-50");
+    }
+
+    function getActivePlan() {
+      let plan = appState.plans.find(p => p.id === appState.activeId);
+      if (!plan) {
+        plan = appState.plans[0];
+        appState.activeId = plan.id;
+      }
+      return plan;
+    }
+
+    appState = loadPlansState();
+
+    // Tạo tên tự động theo chữ cái A, B, C, D, E...
+    function getNextPlanName() {
+      const existingNames = new Set(appState.plans.map(p => p.name.trim()));
+      const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+      for (let i = 0; i < letters.length; i++) {
+        const candidate = `Kế hoạch ${letters[i]}`;
+        if (!existingNames.has(candidate)) return candidate;
+      }
+      return `Kế hoạch ${appState.plans.length + 1}`;
+    }
+
+    function selectPlan(id) {
+      appState.activeId = id;
+      savePlansState();
+      renderAll();
+    }
+
+    function createNewPlan() {
+      const defaultName = getNextPlanName();
+      const name = prompt("Nhập tên kế hoạch thời khóa biểu mới:", defaultName);
+      if (name === null) return;
+      const cleanName = name.trim() || defaultName;
+      const newId = "plan_" + Date.now();
+      appState.plans.push({ id: newId, name: cleanName, courses: [] });
+      appState.activeId = newId;
+      savePlansState();
+      renderAll();
+    }
+
+    function duplicateCurrentPlan() {
+      const current = getActivePlan();
+      const defaultName = `${getNextPlanName()} (Bản sao ${current.name})`;
+      const name = prompt("Đặt tên cho bản sao kế hoạch này:", defaultName);
+      if (name === null) return;
+      const cleanName = name.trim() || defaultName;
+      const newId = "plan_" + Date.now();
+      appState.plans.push({
+        id: newId,
+        name: cleanName,
+        courses: [...current.courses]
+      });
+      appState.activeId = newId;
+      savePlansState();
+      renderAll();
+    }
+
+    function renameCurrentPlan() {
+      const current = getActivePlan();
+      const name = prompt("Nhập tên mới cho kế hoạch:", current.name);
+      if (name === null || !name.trim()) return;
+      current.name = name.trim();
+      savePlansState();
+      renderAll();
+    }
+
+    function deleteCurrentPlan() {
+      if (appState.plans.length <= 1) {
+        alert("Cần giữ lại ít nhất 1 kế hoạch thời khóa biểu.");
+        return;
+      }
+      const current = getActivePlan();
+      if (!confirm(`Bạn có chắc muốn xóa "${current.name}" không?`)) return;
+      appState.plans = appState.plans.filter(p => p.id !== current.id);
+      appState.activeId = appState.plans[0].id;
+      savePlansState();
+      renderAll();
+    }
+
+    // Xuất / Nhập file sao lưu JSON
+    function exportBackup() {
+      const blob = new Blob([JSON.stringify(appState, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `KeHoach_TKB_HUB_HK2_2026_2027.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    document.getElementById("jsonImport").addEventListener("change", function(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        try {
+          const imported = JSON.parse(evt.target.result);
+          if (imported && Array.isArray(imported.plans) && imported.plans.length > 0) {
+            appState = imported;
+            savePlansState();
+            renderAll();
+            alert(`Đã khôi phục thành công ${appState.plans.length} phương án thời khóa biểu!`);
+          } else {
+            alert("File sao lưu không đúng định dạng.");
+          }
+        } catch (err) {
+          alert("Không thể đọc file sao lưu JSON.");
+        }
+      };
+      reader.readAsText(file);
+      e.target.value = "";
+    });
+
+    // Đọc file Excel cập nhật mới nếu có
+    document.getElementById("excelUpload").addEventListener("change", function(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        const data = new Uint8Array(evt.target.result);
+        const workbook = XLSX.read(data, { type: "array" });
+        const parsedMap = {};
+        const order = [...workbook.SheetNames].sort((a, b) => (a.trim() === "41" ? 1 : b.trim() === "41" ? -1 : 0));
+
+        order.forEach(sheetName => {
+          const sheet = workbook.Sheets[sheetName];
+          const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "" });
+          let hdrIdx = rows.findIndex(r => String(r[0]).trim() === "STT");
+          if (hdrIdx === -1) return;
+
+          const headers = rows[hdrIdx].map(h => String(h).replace(/\s+/g, " ").trim());
+          const idxCode = headers.findIndex(h => h === "LỚP HP");
+          const idxName = headers.findIndex(h => h === "TÊN HỌC PHẦN");
+          const idxCa   = headers.findIndex(h => h === "CA TIẾT");
+          const idxThu  = headers.findIndex(h => h === "THỨ");
+          const idxTuan = headers.findIndex(h => h === "TUẦN");
+          const idxRoom = headers.findIndex(h => h === "GĐ HỌC");
+          const idxExamCa = headers.findIndex(h => h.startsWith("CA THI"));
+          const idxExamDate = headers.findIndex(h => h.startsWith("NGÀY THI"));
+          const idxExamCampus = headers.findIndex(h => h === "CƠ SỞ THI");
+          const idxExamPm = headers.findIndex(h => h === "(THI CẬP NHẬT)");
+
+          for (let i = hdrIdx + 1; i < rows.length; i++) {
+            const r = rows[i];
+            const code = String(r[idxCode] || "").trim().toUpperCase();
+            if (!code || code === "LỚP HP") continue;
+
+            const splitLines = (val) => String(val || "").split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+            const caLines = splitLines(r[idxCa]);
+            const thuLines = splitLines(r[idxThu]);
+            const tuanLines = splitLines(r[idxTuan]);
+            const roomLines = splitLines(r[idxRoom]);
+
+            const n = Math.max(caLines.length, thuLines.length, tuanLines.length, roomLines.length, 1);
+            const expand = (arr) => {
+              if (arr.length === n) return arr;
+              if (arr.length === 1) return Array(n).fill(arr[0]);
+              return Array.from({ length: n }, (_, k) => arr[k] ?? arr[arr.length - 1] ?? "");
+            };
+
+            const caExp = expand(caLines);
+            const thuExp = expand(thuLines);
+            const tuanExp = expand(tuanLines);
+            const roomExp = expand(roomLines);
+
+            const sessions = [];
+            for (let k = 0; k < n; k++) {
+              sessions.push({
+                ca: caExp[k],
+                thu: parseInt(thuExp[k], 10),
+                tuanRaw: tuanExp[k],
+                weeks: parseWeeks(tuanExp[k]),
+                room: roomExp[k]
+              });
+            }
+
+            const campus = String(r[idxExamCampus] || "TĐ").trim();
+            const pmFlag = idxExamPm !== -1 ? String(r[idxExamPm] || "").trim() : "";
+            const examRoomText = pmFlag === "PM"
+              ? `Phòng máy - Cơ sở ${campus} (Chưa phân số phòng)`
+              : `Cơ sở ${campus} (Chưa phân phòng trên file)`;
+
+            parsedMap[code] = {
+              code,
+              name: String(r[idxName] || "").trim(),
+              sessions,
+              examCa: String(r[idxExamCa] || "").trim(),
+              examDate: String(r[idxExamDate] || "").trim(),
+              examRoom: examRoomText
+            };
+          }
+        });
+
+        COURSES_DB = { ...COURSES_DB, ...parsedMap };
+        localStorage.setItem("hub_tkb_custom_db", JSON.stringify(parsedMap));
+        document.getElementById("dbStatusText").textContent = `Đã cập nhật ${Object.keys(COURSES_DB).length} lớp học phần từ "${file.name}"`;
+        renderAll();
+      };
+      reader.readAsArrayBuffer(file);
+    });
+
+    function getWeekDates(weekNum) {
+      const start = new Date(WEEK1_START);
+      start.setDate(WEEK1_START.getDate() + (weekNum - 1) * 7);
+      const end = new Date(start);
+      end.setDate(start.getDate() + 6);
+      return { start, end };
+    }
+
+    function fmtDate(d) {
+      const dd = String(d.getDate()).padStart(2, "0");
+      const mm = String(d.getMonth() + 1).padStart(2, "0");
+      return `${dd}/${mm}`;
+    }
+
+    function fmtFullDate(d) {
+      return `${fmtDate(d)}/${d.getFullYear()}`;
+    }
+
+    function initWeekSelector() {
+      const sel = document.getElementById("weekSelector");
+      sel.innerHTML = "";
+      for (let w = 1; w <= TOTAL_WEEKS; w++) {
+        const { start, end } = getWeekDates(w);
+        const opt = document.createElement("option");
+        opt.value = w;
+        opt.textContent = `Tuần ${w} (${fmtFullDate(start)} – ${fmtFullDate(end)})`;
+        sel.appendChild(opt);
+      }
+    }
+
+    function changeWeek(delta) {
+      const sel = document.getElementById("weekSelector");
+      const next = Math.min(TOTAL_WEEKS, Math.max(1, parseInt(sel.value, 10) + delta));
+      sel.value = next;
+      renderAll();
+    }
+
+    function getPeriodGroup(ca) {
+      const c = String(ca).toUpperCase().trim();
+      if (c === "C" || c.startsWith("6") || c.startsWith("9") || c.includes("10")) return "C";
+      return "S";
+    }
+
+    function detectConflicts(selectedCodes) {
+      const conflicts = [];
+      const activeCourses = selectedCodes.map(c => COURSES_DB[c]).filter(Boolean);
+
+      for (let i = 0; i < activeCourses.length; i++) {
+        for (let j = i + 1; j < activeCourses.length; j++) {
+          const a = activeCourses[i];
+          const b = activeCourses[j];
+          a.sessions.forEach(sa => {
+            b.sessions.forEach(sb => {
+              if (sa.thu === sb.thu && getPeriodGroup(sa.ca) === getPeriodGroup(sb.ca)) {
+                const overlapWeeks = sa.weeks.filter(w => sb.weeks.includes(w));
+                if (overlapWeeks.length > 0) {
+                  conflicts.push(`Trùng lịch học: <strong>${a.code}</strong> và <strong>${b.code}</strong> vào Thứ ${sa.thu} (Ca ${getPeriodGroup(sa.ca)}) tại các tuần: ${overlapWeeks.join(", ")}.`);
+                }
+              }
+            });
+          });
+          if (a.examDate && b.examDate && a.examDate === b.examDate && a.examCa === b.examCa) {
+            conflicts.push(`Trùng lịch thi: <strong>${a.code}</strong> và <strong>${b.code}</strong> cùng thi ngày ${a.examDate} (${a.examCa}).`);
+          }
+        }
+      }
+      return conflicts;
+    }
+
+    function renderPlanTabs() {
+      const container = document.getElementById("planTabsContainer");
+      const activePlan = getActivePlan();
+
+      container.innerHTML = appState.plans.map(plan => {
+        const isActive = plan.id === activePlan.id;
+        const count = plan.courses.length;
+        const conflictsCount = detectConflicts(plan.courses).length;
+        const conflictDot = conflictsCount > 0
+          ? `<span class="ml-1.5 px-1.5 py-0.2 rounded-full text-[10px] font-bold ${isActive ? 'bg-amber-400 text-red-950' : 'bg-red-100 text-red-700'}">!</span>`
+          : "";
+
+        return `
+          <button onclick="selectPlan('${plan.id}')" class="px-3.5 py-2 rounded-xl border text-xs font-semibold transition flex items-center gap-1.5 ${isActive ? 'plan-pill-active' : 'plan-pill-inactive'}">
+            <span>${plan.name}</span>
+            <span class="px-1.5 py-0.5 rounded-md text-[11px] ${isActive ? 'bg-red-800 text-red-100' : 'bg-slate-100 text-slate-600'}">${count} môn</span>
+            ${conflictDot}
+          </button>
+        `;
+      }).join("");
+
+      document.getElementById("currentPlanTitle").textContent = activePlan.name;
+      document.getElementById("examPlanTitle").textContent = activePlan.name;
+      document.getElementById("conflictPlanName").textContent = activePlan.name;
+    }
+
+    function renderAll() {
+      renderPlanTabs();
+      const activePlan = getActivePlan();
+      const selectedCodes = activePlan.courses;
+
+      const week = parseInt(document.getElementById("weekSelector").value || "1", 10);
+      const { start } = getWeekDates(week);
+
+      for (let thu = 2; thu <= 7; thu++) {
+        const d = new Date(start);
+        d.setDate(start.getDate() + (thu - 2));
+        document.getElementById(`th-${thu}`).innerHTML = `Thứ ${thu}<div class="text-xs font-normal text-slate-500">${fmtDate(d)}</div>`;
+      }
+
+      const conflicts = detectConflicts(selectedCodes);
+      const banner = document.getElementById("conflictBanner");
+      const list = document.getElementById("conflictList");
+      if (conflicts.length > 0) {
+        banner.classList.remove("hidden");
+        list.innerHTML = conflicts.map(c => `<li>${c}</li>`).join("");
+      } else {
+        banner.classList.add("hidden");
+      }
+
+      const tbody = document.getElementById("timetableBody");
+      const shifts = [
+        { key: "S", label: "CA SÁNG", sub: "Tiết 1–5\n(07:00–11:05)" },
+        { key: "C", label: "CA CHIỀU", sub: "Tiết 6–10\n(13:00–17:05)" }
+      ];
+
+      tbody.innerHTML = shifts.map(shift => {
+        const cells = [2, 3, 4, 5, 6, 7].map(thu => {
+          const items = [];
+          selectedCodes.forEach((code, idx) => {
+            const course = COURSES_DB[code];
+            if (!course) return;
+            const color = PALETTE[idx % PALETTE.length];
+            course.sessions.forEach(s => {
+              if (s.thu === thu && getPeriodGroup(s.ca) === shift.key && s.weeks.includes(week)) {
+                items.push({ course, session: s, color });
+              }
+            });
+          });
+
+          const cardsHtml = items.map(({ course, session, color }) => `
+            <div class="cell-card border-l-4 rounded-lg p-2.5 mb-2 last:mb-0 text-left shadow-2xs ${color}">
+              <div class="flex items-center justify-between gap-1">
+                <span class="text-[11px] font-bold tracking-wide">${course.code}</span>
+                <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-white/80">Phòng ${session.room}</span>
+              </div>
+              <div class="font-semibold text-xs mt-1 leading-snug">${course.name}</div>
+              <div class="text-[11px] opacity-80 mt-1">
+                ${SESSION_TIME_MAP[session.ca] || `Ca/Tiết: ${session.ca}`} • Tuần: ${session.tuanRaw}
+              </div>
+            </div>
+          `).join("");
+
+          return `<td class="p-2.5 align-top border-r last:border-r-0 border-slate-200 min-w-[140px] h-36 bg-white">${cardsHtml}</td>`;
+        }).join("");
+
+        return `
+          <tr class="border-b last:border-b-0 border-slate-200">
+            <td class="p-3 bg-slate-50 border-r border-slate-200 align-middle text-center">
+              <div class="font-bold text-slate-800 text-xs">${shift.label}</div>
+              <div class="text-[11px] text-slate-500 whitespace-pre-line mt-0.5">${shift.sub}</div>
+            </td>
+            ${cells}
+          </tr>
+        `;
+      }).join("");
+
+      const activeCourses = selectedCodes.map(c => COURSES_DB[c]).filter(Boolean);
+      document.getElementById("examCount").textContent = activeCourses.length;
+      document.getElementById("courseCount").textContent = activeCourses.length;
+
+      const sortedExams = [...activeCourses].sort((a, b) => {
+        const toTime = (str) => {
+          const [d, m, y] = (str || "31/12/2099").split("/").map(Number);
+          return new Date(y, m - 1, d).getTime();
+        };
+        return toTime(a.examDate) - toTime(b.examDate);
+      });
+
+      const examBody = document.getElementById("examTableBody");
+      if (sortedExams.length === 0) {
+        examBody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-slate-400">Chưa có môn học nào trong <strong>${activePlan.name}</strong>. Nhấn <strong>"Thêm môn học"</strong> để bắt đầu.</td></tr>`;
+      } else {
+        examBody.innerHTML = sortedExams.map(c => `
+          <tr class="hover:bg-slate-50">
+            <td class="p-3.5 font-semibold text-red-900">${c.examDate || "Chưa có"}</td>
+            <td class="p-3.5"><span class="px-2 py-1 rounded bg-amber-100 text-amber-900 font-semibold text-xs">${c.examCa}</span> <span class="text-slate-500 text-xs ml-1">(${EXAM_TIME_MAP[c.examCa] || "Theo thông báo"})</span></td>
+            <td class="p-3.5 font-mono text-xs font-semibold">${c.code}</td>
+            <td class="p-3.5 font-medium">${c.name}</td>
+            <td class="p-3.5 text-slate-600 text-xs">${c.examRoom}</td>
+          </tr>
+        `).join("");
+      }
+
+      const grid = document.getElementById("selectedCoursesGrid");
+      if (activeCourses.length === 0) {
+        grid.innerHTML = `<div class="col-span-full bg-white rounded-xl border border-slate-200 p-8 text-center text-slate-400">Chưa có học phần nào được thêm vào <strong>${activePlan.name}</strong>.</div>`;
+      } else {
+        grid.innerHTML = activeCourses.map(c => {
+          const sessionLines = c.sessions.map(s => `
+            <div class="flex items-center justify-between text-xs bg-slate-50 px-3 py-2 rounded-lg border border-slate-200">
+              <span><strong>Thứ ${s.thu}</strong> • ${SESSION_TIME_MAP[s.ca] || s.ca} • Tuần <strong>${s.tuanRaw}</strong></span>
+              <span class="font-semibold text-red-900">Phòng ${s.room}</span>
+            </div>
+          `).join("");
+
+          return `
+            <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm flex flex-col justify-between gap-3">
+              <div>
+                <div class="flex items-start justify-between gap-2">
+                  <div>
+                    <span class="text-xs font-mono font-bold px-2 py-0.5 rounded bg-red-50 text-red-900">${c.code}</span>
+                    <h3 class="font-bold text-slate-800 mt-1.5">${c.name}</h3>
+                  </div>
+                  <button onclick="removeCourse('${c.code}')" class="text-xs text-slate-400 hover:text-red-600 px-2 py-1 rounded hover:bg-red-50">Xóa</button>
+                </div>
+                <div class="mt-3 space-y-1.5">${sessionLines}</div>
+              </div>
+              <div class="pt-2 border-t border-slate-100 text-xs text-slate-600 flex items-center justify-between">
+                <span>Lịch thi: <strong>${c.examDate}</strong> (${c.examCa} - ${EXAM_TIME_MAP[c.examCa] || ""})</span>
+                <span>${c.examRoom}</span>
+              </div>
+            </div>
+          `;
+        }).join("");
+      }
+    }
+
+    function openAddModal() {
+      const activePlan = getActivePlan();
+      document.getElementById("modalPlanName").textContent = activePlan.name;
+      document.getElementById("addModal").classList.remove("hidden");
+      document.getElementById("addModal").classList.add("flex");
+      const inp = document.getElementById("courseInput");
+      inp.value = "";
+      inp.focus();
+      document.getElementById("previewBox").classList.add("hidden");
+    }
+
+    function closeAddModal() {
+      document.getElementById("addModal").classList.add("hidden");
+      document.getElementById("addModal").classList.remove("flex");
+    }
+
+    function previewCourse() {
+      const raw = document.getElementById("courseInput").value.trim().toUpperCase();
+      const box = document.getElementById("previewBox");
+      if (!raw) {
+        box.classList.add("hidden");
+        return;
+      }
+      const codes = raw.split(/[\s,;]+/).filter(Boolean);
+      const found = codes.map(c => COURSES_DB[c]).filter(Boolean);
+      const notFound = codes.filter(c => !COURSES_DB[c]);
+
+      if (found.length === 0) {
+        box.classList.remove("hidden");
+        box.innerHTML = `<p class="text-amber-700 text-xs">Không tìm thấy mã học phần: <strong>${codes.join(", ")}</strong>. Vui lòng kiểm tra lại đúng mã lớp HP (VD: <code>BAF716_262_D01</code>).</p>`;
+        return;
+      }
+
+      box.classList.remove("hidden");
+      let html = found.map(c => `
+        <div class="border-b last:border-b-0 border-slate-200 pb-2 last:pb-0">
+          <div class="font-bold text-red-900">${c.code} – ${c.name}</div>
+          ${c.sessions.map(s => `<div class="text-xs text-slate-700 mt-0.5">• Thứ <strong>${s.thu}</strong> | ${SESSION_TIME_MAP[s.ca] || s.ca} | Tuần: <strong>${s.tuanRaw}</strong> | Phòng: <strong>${s.room}</strong></div>`).join("")}
+          <div class="text-xs text-slate-500 mt-0.5">• Thi dự kiến: ${c.examDate} (${c.examCa}) – ${c.examRoom}</div>
+        </div>
+      `).join("");
+
+      if (notFound.length > 0) {
+        html += `<div class="text-xs text-amber-700 pt-1">Mã chưa khớp: <strong>${notFound.join(", ")}</strong></div>`;
+      }
+      box.innerHTML = html;
+    }
+
+    function addCourseFromInput() {
+      const raw = document.getElementById("courseInput").value.trim().toUpperCase();
+      if (!raw) return;
+      const activePlan = getActivePlan();
+      const codes = raw.split(/[\s,;]+/).filter(Boolean);
+      let added = 0;
+      codes.forEach(code => {
+        if (COURSES_DB[code] && !activePlan.courses.includes(code)) {
+          activePlan.courses.push(code);
+          added++;
+        }
+      });
+      if (added > 0) {
+        savePlansState();
+        renderAll();
+        closeAddModal();
+      } else {
+        previewCourse();
+      }
+    }
+
+    function removeCourse(code) {
+      const activePlan = getActivePlan();
+      activePlan.courses = activePlan.courses.filter(c => c !== code);
+      savePlansState();
+      renderAll();
+    }
+
+    function clearCurrentPlanCourses() {
+      const activePlan = getActivePlan();
+      if (!confirm(`Làm trống toàn bộ môn học trong "${activePlan.name}"?`)) return;
+      activePlan.courses = [];
+      savePlansState();
+      renderAll();
+    }
+
+    function switchTab(tab) {
+      ["timetable", "exams", "courses"].forEach(t => {
+        document.getElementById(`view${t.charAt(0).toUpperCase() + t.slice(1)}`).classList.toggle("hidden", t !== tab);
+        const btn = document.getElementById(`tabBtn${t.charAt(0).toUpperCase() + t.slice(1)}`);
+        if (t === tab) {
+          btn.classList.add("tab-active");
+          btn.classList.remove("text-slate-500");
+        } else {
+          btn.classList.remove("tab-active");
+          btn.classList.add("text-slate-500");
+        }
+      });
+    }
+
+    document.getElementById("courseInput").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") addCourseFromInput();
+    });
+
+    initWeekSelector();
+    renderAll();
+  </script>
+</body>
+</html>
